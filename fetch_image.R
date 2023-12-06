@@ -46,7 +46,7 @@ body    <- list(
 # For the request you need to replace the OPENAI_API_KEY with your own API key
 # that you get after signing up: https://platform.openai.com/account/api-keys
 request <- request(url) %>%
-    req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
+    req_headers(Authorization = str_glue("Bearer {Sys.getenv(OPENAI_API_KEY)}")) %>%
     req_body_json(body) %>%
     req_perform()
 

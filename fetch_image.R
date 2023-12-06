@@ -64,16 +64,16 @@ response <- POST(
     add_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")),
     body   = body,
     encode = "json",
-    timeout(300)
+    timeout(600)
 )
 
-# Check the request was successful (status code should be 200) ----
-request$status_code
-
-# Let's take a look at the content ----
-request %>%
-    resp_body_json() %>% 
-    glimpse()
+# # Check the request was successful (status code should be 200) ----
+# request$status_code
+# 
+# # Let's take a look at the content ----
+# request %>%
+#     resp_body_json() %>% 
+#     glimpse()
 
 # Save the image URL ----
 url_img <- request %>%

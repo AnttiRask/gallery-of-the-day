@@ -1,6 +1,6 @@
--create text prompt
--fetch image using that prompt
--automate the previous script(s)
+-create text prompt                                                 CHECK
+-fetch image using that prompt                                      CHECK
+-automate the previous script(s)                                    
 -create the shiny app
     *mvp only showing one image (with max(date))
     *next version with a calendar so you can switch between images

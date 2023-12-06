@@ -6,6 +6,7 @@ library(dplyr)
 library(httr2)
 library(lubridate)
 library(purrr)
+library(readr)
 library(stringr)
 
 # Create the API POST request ----
@@ -74,21 +75,21 @@ prompts_new <- request %>%
 
 # Save the text output in a txt file ----
 
-# # Define the file path
-# file_path <- "data/prompts.csv"
-# 
-# # Check if the file exists
-# if (file.exists(file_path)) {
-#     # Read existing data
-#     prompts_existing <- read_csv(file_path)
-#     
-#     # Combine the existing and new data
-#     prompts_combined <- bind_rows(prompts_existing, prompts_new)
-#     
-#     # Write the combined data back to the CSV
-#     write_csv(prompts_combined, file_path)
-#     
-# } else {
-#     # Write the new data to a new CSV file
-#     write_csv(prompts_new, file_path)
-# }
+# Define the file path
+file_path <- "data/prompts.csv"
+
+# Check if the file exists
+if (file.exists(file_path)) {
+    # Read existing data
+    prompts_existing <- read_csv(file_path)
+
+    # Combine the existing and new data
+    prompts_combined <- bind_rows(prompts_existing, prompts_new)
+
+    # Write the combined data back to the CSV
+    write_csv(prompts_combined, file_path)
+
+} else {
+    # Write the new data to a new CSV file
+    write_csv(prompts_new, file_path)
+}

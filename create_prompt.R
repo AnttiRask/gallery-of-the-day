@@ -4,6 +4,7 @@
 # Load packages ----
 library(dplyr)
 library(httr2)
+library(jsonlite)
 library(lubridate)
 library(purrr)
 library(readr)

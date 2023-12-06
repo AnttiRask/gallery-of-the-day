@@ -1,0 +1,7 @@
+-create text prompt
+-fetch image using that prompt
+-automate the previous script(s)
+-create the shiny app
+    *mvp only showing one image (with max(date))
+    *next version with a calendar so you can switch between images
+-create a database for the images

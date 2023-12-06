@@ -31,6 +31,9 @@ n       <- 1
 # Image size
 size    <- "1024x1024"
 
+# Image quality
+quality <- "standard"
+
 ## Create the request ----
 
 # The URL for this particular use case (see documentation for others)
@@ -38,10 +41,11 @@ url <- "https://api.openai.com/v1/images/generations"
 
 # Gather the arguments as the body of the request
 body    <- list(
-    model  = model,
-    prompt = prompt,
-    n      = n,
-    size   = size
+    model   = model,
+    prompt  = prompt,
+    n       = n,
+    size    = size,
+    quality = quality
 )
 
 # For the request you need to replace the OPENAI_API_KEY with your own API key
@@ -49,7 +53,7 @@ body    <- list(
 OPENAI_API_KEY <- Sys.getenv("OPENAI_API_KEY")
 
 # Set a longer timeout globally (e.g., 120 seconds)
-options(timeout = 120)
+options(timeout = 300)
 
 request <- request(url) %>%
     req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%

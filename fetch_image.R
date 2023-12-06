@@ -4,6 +4,7 @@
 # Load packages ----
 library(conflicted)
     conflicts_prefer(dplyr::filter)
+library(curl)
 library(dplyr)
 library(httr2)
 library(jsonlite)
@@ -81,4 +82,4 @@ url_img <- request %>%
 destfile <- str_glue("img/gallery-of-the-day-{today()}.png")
 
 # Download the file at the URLand save it to 'destfile'
-download.file(url_img, destfile, mode = "wb")
+curl_download(url_img, destfile, mode = "wb")

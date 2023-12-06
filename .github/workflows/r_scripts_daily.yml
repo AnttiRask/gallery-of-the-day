@@ -26,6 +26,10 @@ jobs:
       run: |
         Get-ChildItem -Recurse
 
+    - name: Test Network Connectivity to OpenAI API
+      run: |
+        curl -I https://api.openai.com
+    
     - name: Run create_prompt.R
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

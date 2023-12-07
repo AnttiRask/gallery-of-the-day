@@ -1,4 +1,4 @@
-# # Source the secret ----
+# Source the secret ----
 # source("secret.R")
 
 # Load packages ----
@@ -6,8 +6,7 @@ library(conflicted)
     conflicts_prefer(dplyr::filter)
 library(curl)
 library(dplyr)
-library(httr)
-# library(httr2)
+library(httr2)
 library(jsonlite)
 library(lubridate)
 library(purrr)
@@ -54,26 +53,10 @@ body    <- list(
 # that you get after signing up: https://platform.openai.com/account/api-keys
 OPENAI_API_KEY <- Sys.getenv("OPENAI_API_KEY")
 
-# request <- request(url) %>%
-#     req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
-#     req_body_json(body) %>%
-#     req_perform()
-
-response <- POST(
-    url,
-    add_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")),
-    body   = body,
-    encode = "json",
-    timeout(600)
-)
-
-# # Check the request was successful (status code should be 200) ----
-# request$status_code
-# 
-# # Let's take a look at the content ----
-# request %>%
-#     resp_body_json() %>% 
-#     glimpse()
+request <- request(url) %>%
+    req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
+    req_body_json(body) %>%
+    req_perform()
 
 # Save the image URL ----
 url_img <- request %>%

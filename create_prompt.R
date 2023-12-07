@@ -1,4 +1,4 @@
-# # Source the secret ----
+# Source the secret ----
 # source("secret.R")
 
 # Load packages ----

@@ -8,13 +8,13 @@ body {
 h1 {
     color: #C0C0C0;
     font-family: Garamond, Times, serif;
-    font-size:10vw;
+    font-size: 10vw;
 }
 
 h5 {
     color: #C0C0C0;
     font-family: Garamond, Times, serif;
-    font-size:2vw;
+    font-size: 2vw;
 }
 
 /* Center the image on the page and add a frame */
@@ -28,14 +28,7 @@ img {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: for a slight shadow */
 }
 
-/* Style the caption to be below the image and limit its width */
-.title {
-    text-align: center;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    width: 100%;
-}
-
+/* Class */
 .caption {
     text-align: left;
     margin-top: 20px;
@@ -43,4 +36,36 @@ img {
     width: 80%;
     margin-left: auto;
     margin-right: auto;
+}
+
+.control-label {
+    color: #C1272D;
+    font-family: Garamond, Times, serif;
+    font-size: 1.5vw;
+    text-align: center;
+}
+
+.date-input-container {
+  display: flex !important;
+  justify-content: center !important;
+  text-align: center !important;
+  margin-bottom: 20px !important;
+}
+
+.form-control{
+    font-family: Garamond, Times, serif;
+    font-size: 1.5vw;
+    text-align: center;
+}
+
+.shiny-input-container label {
+    text-align: center;
+    width: 100%;
+}
+
+.title {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 100%;
 }

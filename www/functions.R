@@ -1,35 +1,8 @@
-library(stringr)
+add_spaces_after_periods <- function(text) {
+    str_replace_all(text, "\\.(?! )", ". ")
+}
 
-# add_spaces_after_periods <- function(text) {
-#     str_replace_all(text, "\\.(?! )", ". ")
-# }
-# 
-# insert_row_breaks <- function(text, max_length = 400) {
-#     words <- str_split(text, " ")[[1]]
-#     new_text <- ""
-#     line_length <- 0
-#     
-#     for (word in words) {
-#         if (line_length + nchar(word) > max_length) {
-#             new_text <- str_c(new_text, "\n", sep = "")
-#             line_length <- 0
-#         }
-#         new_text <- str_c(new_text, word, sep = " ")
-#         line_length <- line_length + nchar(word) + 1
-#     }
-#     
-#     str_trim(new_text)
-# }
-# 
-# clean_and_break_text <- function(text) {
-#     text %>%
-#         add_spaces_after_periods() %>%
-#         insert_row_breaks()
-# }
-
-clean_and_break_text <- function(text, max_length = 400) {
-    # Add spaces after periods where they are missing
-    text <- str_replace_all(text, "\\.(?! )", ". ")
+insert_row_breaks <- function(text, max_length = 400) {
     
     # Split the text into sentences
     sentences <- unlist(str_split(text, "(?<=[.!?])\\s+"))
@@ -55,4 +28,10 @@ clean_and_break_text <- function(text, max_length = 400) {
     }
     
     return(new_text)
+}
+
+clean_and_break_text <- function(text) {
+    text %>%
+        add_spaces_after_periods() %>%
+        insert_row_breaks()
 }

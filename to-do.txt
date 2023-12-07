@@ -1,7 +1,7 @@
 -create text prompt                                                 CHECK
 -fetch image using that prompt                                      CHECK
 -automate the previous script(s)                                    IN PROGRESS
--create the shiny app                                               
-    *mvp only showing one image (with max(date))
-    *next version with a calendar so you can switch between images
--create a database for the images
+-create the shiny app                                               CHECK
+    *mvp only showing one image (with max(date))                    CHECK
+    *next version with a calendar so you can switch between images  CHECK
+-create a database for the images                                   

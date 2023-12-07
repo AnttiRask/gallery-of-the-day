@@ -8,62 +8,132 @@ library(shiny)
 library(stringr)
 library(tibble)
 
-server <- function(input, output) {
+server <- function(input, output, session) {
+    
+    addResourcePath("img", "img/")
+    
+    # Read the prompts data reactively
+    prompts         <- reactive({
+        read_csv("data/prompts.csv")
+    })
+    
+    # A reactive expression to return available_dates based on prompts_data
+    available_dates <- reactive({
+        prompts() %>%
+            pull(date) %>%
+            unique() %>%
+            sort()
+    })
+    
+    # Render the date input UI
+    output$dateInput_ui <- renderUI({
+        dateInput(
+            "dateInput",
+            "Choose a Date",
+            value = max(available_dates()),
+            min   = min(available_dates()),
+            max   = max(available_dates())
+        )
+    })
+    
+    # Reactive expression for selected date
+    selected_info <- reactive({
+        
+        # Ensure that prompts_data and available_dates have been calculated
+        req(prompts(), available_dates())
+        
+        selected_date <- input$dateInput
+        req(selected_date)  # Ensure that selected_date is not NULL
+        
+        # Filter for the selected date
+        filtered_data <- prompts() %>%
+            filter(date == selected_date)
+        
+        if (nrow(filtered_data) == 0) {
+            return(NULL)  # Return NULL if no entries for the selected date
+        }
+        
+        # Filter for the selected date
+        selected_prompt <- filtered_data %>%
+            slice(1) %>%
+            pull(text)
+        
+        # Find the image for the selected date
+        selected_image <- list.files(
+            path       = "img/",
+            pattern    = str_c(selected_date, ".*"),
+            full.names = TRUE
+        )
+        
+        if (length(selected_image) == 0) {
+            return(NULL)  # Return NULL if no image found
+        }
+        
+        list(
+            prompt = selected_prompt,
+            image  = selected_image
+        )
+    })
     
     output$imageGallery <- renderUI({
         
-        # Get a list of image files sorted by modified time
-        image_files    <- list.files(path = "img/", full.names = TRUE)
-        image_latest   <- image_files %>%
-            enframe(name = NULL, value = "filepath") %>%
-            mutate(mtime = file.info(filepath)$mtime) %>%
-            slice_max(mtime) %>%
-            pull(filepath)
+        # Ensure selected_info is available before trying to use it
+        req(selected_info())
         
-        # Display the latest image and caption
-        addResourcePath("img", "img/")
-        
-        tagList(
+        # If there's a matching image and caption, display them
+        if (length(selected_info()$image) > 0 && length(selected_info()$prompt) > 0) {
             
-            div(
-                class = "title",
-                h1("Gallery of the Day")
-            ),
-            
-            br(),
-            
-            img(
-                src    = image_latest,
-                class  = "img-responsive",
-                alt    = "Gallery image",
-                height = "1024px",
-                width  = "1024px"
+            tagList(
+                
+                div(
+                    class = "title",
+                    h1("Gallery of the Day")
+                ),
+                
+                br(),
+                
+                img(
+                    src    = selected_info()$image,
+                    class  = "img-responsive",
+                    alt    = "Gallery image",
+                    height = "1024px",
+                    width  = "1024px"
+                )
             )
-        )
+            
+        } else {
+            
+            h5("No image available for this date.")
+            
+        }
     })
     
     output$text_with_breaks <- renderUI({
         
-        # Read the prompts data
-        prompts        <- read_csv("data/prompts.csv")
-        
-        # Sort the prompts data to get the latest entry
-        prompts_latest <- prompts %>%
-            filter(date == max(date))
+        # Make sure there is a prompt before trying to display it
+        req(selected_info()$prompt)
         
         # Clean the prompt to get the caption
-        caption_latest <- prompts_latest %>%
-            pull(text) %>%
+        selected_caption <- selected_info()$prompt %>%
             clean_and_break_text()
         
         # Replace newline characters with HTML line breaks
-        caption_with_breaks <- HTML(str_replace_all(caption_latest, "\n", "<br>"))
-
-        tagList(
-            div(
-                class = "caption",
-                h5(caption_with_breaks)
+        caption_with_breaks <- HTML(str_replace_all(selected_caption, "\n", "<br>"))
+        
+        # If there's a matching image and caption, display them
+        if (length(selected_info()$image) > 0 && length(selected_info()$prompt) > 0) {
+            
+            tagList(
+                div(
+                    class = "caption",
+                    h5(caption_with_breaks)
+                )
             )
-        )
+            
+        } else {
+            
+            h5("No caption available for this date.")
+            
+        }
     })
 }

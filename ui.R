@@ -18,6 +18,11 @@ ui <- fluidPage(
     uiOutput("imageGallery"),
     
     br(),
+    br(),
+    
+    div(class = "date-input-container", uiOutput("dateInput_ui")),
+    
+    br(),
     
     htmlOutput("text_with_breaks")
 

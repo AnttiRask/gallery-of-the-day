@@ -41,7 +41,15 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: Rscript fetch_image.R
       working-directory: ${{ github.workspace }} # Adjust this path
-      
+    
+    - name: Run deploy_app.R
+      env:
+        SHINY_APPS_NAME: ${{ secrets.SHINY_APPS_NAME }}
+        SHINY_APPS_SECRET: ${{ secrets.SHINY_APPS_SECRET }}
+        SHINY_APPS_TOKEN: ${{ secrets.SHINY_APPS_TOKEN }}
+      run: Rscript deploy_app.R
+      working-directory: ${{ github.workspace }} # Adjust this path
+    
     - name: Commit and push if there are changes
       run: |
         git config --local user.name github-actions

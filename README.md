@@ -40,7 +40,7 @@ The repo is broken into three parts:
 2. (Re-)deploying the Shiny app on shinyapps.io
 3. Automating the previous two with GitHub Actions
 
-### Creating the prompt and fetching the image
+### 1. Creating the prompt and fetching the image
 
 I'm using OpenAI's Completions API with the GPT-3.5 Turbo Instruct model to construct the prompt using this prompt (I used GPT-4 to create this one):
 
@@ -52,13 +52,11 @@ Once that prompt is created, we can run the other script to fetch the image (tec
 
 Dall-E 3 actually prettifies the original prompt prior to creating the image. Doesn't really change anything, but it's something to be aware of.
 
-### (Re-)deploying the Shiny app
-
-The app itself is pretty straightforward
+### 2. (Re-)deploying the Shiny app
 
 #### UI
 
-I'm using...
+The app itself is pretty straightforward. For UI I'm using...
 
 * fluidPage() function from {Shiny}
 * a separate style sheet (CSS)
@@ -66,15 +64,15 @@ I'm using...
 
 #### Server
 
-We're reading the prompts data reactively to get the available dates for the date input. We then find the right image and prompt for the selected date (default being the newest).
+We're reading the prompts data reactively to get the available dates for the date input. We then find the right image and prompt for the selected date (newest being the default).
 
 There is some cleaning that needs to be done for the prompt text. First, there are occasions where there is no space after a period. Then, to make the text more readable, it needs to be chopped into separate paragraphs. Since we can't know what the text will include, there's no easy way to do it perfectly. So instead, there will be a break each time after 400 characters is done (after finishing the sentence that was unfinished).
 
 #### Deploying the app
 
-This is pretty straightforward. deployApp() function from {rsconnect} deploys the app to [shinyapps.io](https://www.shinyapps.io/) where I have an account.
+I just run the deployApp() function from {rsconnect} and it deploys the app to [shinyapps.io](https://www.shinyapps.io/) where I have an account.
 
-### Automating the previous steps with GitHub Actions
+### 3. Automating the previous steps with GitHub Actions
 
 I'm using [GitHub Actions](https://github.com/features/actions/) to automate each of the steps. The idea being that once everything is in their places, the process churns a new image daily and deploys it on the website.
 

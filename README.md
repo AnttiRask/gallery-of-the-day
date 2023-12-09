@@ -37,8 +37,8 @@ After that's solved, the gallery should run itself. If you have experience on th
 The repo is broken into three parts: 
 
 1. Creating the prompt and fetching the image
-2. (Re-)deploying the Shiny app on [shinyapps.io](shinyapps.io)
-3. Automating the previous two with [GitHub Actions](https://github.com/features/actions/)
+2. (Re-)deploying the Shiny app on shinyapps.io
+3. Automating the previous two with GitHub Actions
 
 ### Creating the prompt and fetching the image
 
@@ -72,11 +72,11 @@ There is some cleaning that needs to be done for the prompt text. First, there a
 
 #### Deploying the app
 
-This is pretty straightforward. deployApp() function from {rsconnect} deploys the app to [shinyapps.io](shinyapps.io) where I have an account.
+This is pretty straightforward. deployApp() function from {rsconnect} deploys the app to [shinyapps.io](https://www.shinyapps.io/) where I have an account.
 
 ### Automating the previous steps with GitHub Actions
 
-I'm using GitHub actions to automate each of the steps. The idea being that once everything is in their places, the process churns a new image daily and deploys it on the website.
+I'm using [GitHub Actions](https://github.com/features/actions/) to automate each of the steps. The idea being that once everything is in their places, the process churns a new image daily and deploys it on the website.
 
 The GitHub repo holds the OpenAI API Key and the ShinyApps credentials. And the .yml file controls the workflow.
 

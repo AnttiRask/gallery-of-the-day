@@ -77,7 +77,7 @@ prompts_new <- request %>%
 # Save the text output in a txt file ----
 
 # Define the file path
-file_path <- "data/prompts.csv"
+file_path <- "app/data/prompts.csv"
 
 # Check if the file exists
 if (file.exists(file_path)) {

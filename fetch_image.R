@@ -21,7 +21,7 @@ library(stringr)
 model   <- "dall-e-3"
 
 # The text prompt
-prompts <- read_csv("data/prompts.csv")
+prompts <- read_csv("app/data/prompts.csv")
 prompt  <- prompts %>%
     filter(date == max(date)) %>%
     pull(text)
@@ -68,7 +68,7 @@ url_img <- request %>%
 # Download the image ----
 
 # Create the destination file name
-destfile <- str_glue("img/gallery-of-the-day-{today()}.png")
+destfile <- str_glue("app/img/gallery-of-the-day-{today()}.png")
 
 # Download the file at the URLand save it to 'destfile'
 curl_download(url_img, destfile, mode = "wb")

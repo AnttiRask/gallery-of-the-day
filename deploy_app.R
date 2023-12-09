@@ -16,4 +16,4 @@ setAccountInfo(
 #     secret = SHINY_APPS_SECRET
 # )
 
-deployApp()
+deployApp("app/")

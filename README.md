@@ -12,7 +12,7 @@ Well, you can see for yourself [here](https://youcanbeapirate.shinyapps.io/galle
 
 ## How it started:
 
-I had been thinking about a small project that would combine my interest in learning [Shiny](https://shiny.posit.co/) and [OpenAI API] further than I had previously done. I mean, I had
+I had been thinking about a small project that would combine my interest in learning [Shiny](https://shiny.posit.co/) and [OpenAI API](https://platform.openai.com/docs/overview) further than I had previously done. I mean, I had
 written a [blog post](https://www.youcanbeapirate.com/2022/11/20/how-to-insert-topic-here-with-r-using-the-openai-api/) about using the API with R already back in November 2022.
 
 Originally, I had the idea for the art gallery in March 2023. I even tried to create some images, but Dall-E 2 wasn't great for illustrating such complex prompts and I had to put the project
@@ -26,7 +26,7 @@ When Dall-E 3 entered the scene, I knew I would have to finish the project as so
 The gallery is now [online](https://youcanbeapirate.shinyapps.io/gallery-of-the-day/)!
 
 Here's what it looks like (at the moment):
-![Gallery of the Day]("img/gallery-of-the-day-example.png")
+![Gallery of the Day](img/gallery-of-the-day-example.png)
 
 The scripts work (more about them in the next section) when run manually. Currently I have only one problem: GitHub Actions timeout when trying to fetch the image of the day from OpenAI API.
 After that's solved, the gallery should run itself. If you have experience on this specific issue, let me know. I would love to hear your suggestions!
@@ -82,7 +82,7 @@ The GitHub repo holds the OpenAI API Key and the ShinyApps credentials. And the 
 
 As I mentioned earlier, my one and only problem at the moment is that there is a connection timeout when GitHub Actions is trying to run the fetch_image.R script (create_prompt.R runs without problems). This is one of those "it worked on my computer" kinds of problems. If you can help, let me know!
 
-![GitHub Actions error]("/img/github-actions-error.jpg")
+![GitHub Actions error](img/github-actions-error.jpg)
 
 ## What next?
 

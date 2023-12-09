@@ -16,4 +16,9 @@ setAccountInfo(
 #     secret = SHINY_APPS_SECRET
 # )
 
-deployApp("app/")
+deployApp(
+    appDir      = "app/",
+    appName     = "gallery-of-the-day",
+    account     = "youcanbeapirate",
+    forceUpdate = TRUE
+)

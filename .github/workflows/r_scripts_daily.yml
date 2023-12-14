@@ -39,6 +39,7 @@ jobs:
     - name: Run fetch_image.R
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      timeout-minutes: 10
       run: Rscript fetch_image.R
       working-directory: ${{ github.workspace }} # Adjust this path
     

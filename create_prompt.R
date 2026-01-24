@@ -18,28 +18,30 @@ library(stringr)
 date        <- today() %>% format("%B %d")
 prompt      <- str_glue("Could you provide a brief description of a significant historical event that happened on {date} in history? Please include key visual details such as the main figures involved, their clothing, the setting, and any notable objects or symbols. Emphasize elements that would be impactful in a visual representation, and describe the emotional tone or atmosphere of the event.")
 
-# The number of texts
-n           <- 1
-
 # Max number of tokens used
 max_tokens  <- 4000
 
-# Temperature (between 0 and 1 where 1 is most risky)
-temperature <- 0
+# Temperature (between 0 and 1 where 1 is most creative)
+temperature <- 0.7
 
-# Model used
-model       <- "gpt-3.5-turbo-instruct"
+# Model used (gpt-4o-mini is cheaper and better than gpt-3.5-turbo)
+model       <- "gpt-4o-mini"
 
 ## Create the request ----
 
-# The URL for this particular use case (see documentation for others)
-url         <- "https://api.openai.com/v1/completions"
+# The URL for Chat Completions API
+url         <- "https://api.openai.com/v1/chat/completions"
 
-# Gather the arguments as the body of the request
+# System message to set the AI's role
+system_message <- "You are a historian providing vivid descriptions of historical events for artistic visualization."
+
+# Gather the arguments as the body of the request (Chat Completions format)
 body    <- list(
     model       = model,
-    prompt      = prompt,
-    n           = n,
+    messages    = list(
+        list(role = "system", content = system_message),
+        list(role = "user", content = prompt)
+    ),
     temperature = temperature,
     max_tokens  = max_tokens
 )
@@ -62,30 +64,33 @@ request %>%
     glimpse()
 
 # Save the prompt ----
+# Chat Completions API returns content in choices[[1]]$message$content
 prompts_new <- request %>%
     resp_body_json() %>%
-    pluck("choices") %>%
-    unlist() %>%
-    pluck("text") %>%
+    pluck("choices", 1, "message", "content") %>%
     as_tibble() %>%
     rename(text = value) %>%
     mutate(
         text = str_remove_all(text, "\\\n"),
-        date = today()
-    ) 
+        date = as.character(today())
+    )
 
 # Save the text output in a txt file ----
 
 # Define the file path
 file_path <- "app/data/prompts.csv"
 
-# Check if the file exists
+# Check if the file exists and has data
 if (file.exists(file_path)) {
     # Read existing data
-    prompts_existing <- read_csv(file_path)
+    prompts_existing <- read_csv(file_path, col_types = cols(text = col_character(), date = col_character()))
 
-    # Combine the existing and new data
-    prompts_combined <- bind_rows(prompts_existing, prompts_new)
+    # Only combine if there's existing data
+    if (nrow(prompts_existing) > 0) {
+        prompts_combined <- bind_rows(prompts_existing, prompts_new)
+    } else {
+        prompts_combined <- prompts_new
+    }
 
     # Write the combined data back to the CSV
     write_csv(prompts_combined, file_path)

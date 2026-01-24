@@ -54,7 +54,7 @@ body    <- list(
 # OPENAI_API_KEY <- Sys.getenv("OPENAI_API_KEY")
 
 max_retries  <- 3
-initial_wait <- 1  # Wait time in seconds
+initial_wait <- 60  # Wait time in seconds (DALL-E 3 can be slow)
 
 make_request <- function(attempt) {
     response <- request(url) %>%
@@ -115,6 +115,9 @@ url_img <- responses %>%
 # Download the image ----
 
 # Create the destination file name
+# Using today() - 1 because the workflow runs at 4 AM UTC, so the prompt
+# was generated for "today" but by the time the image is created, we want
+# it associated with the correct calendar day for the historical event
 destfile <- str_glue("app/img/gallery-of-the-day-{today() - 1}.png")
 
 # Download the file at the URLand save it to 'destfile'

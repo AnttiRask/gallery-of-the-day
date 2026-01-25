@@ -108,6 +108,11 @@ cat("Got image URL, downloading...\n")
 
 # Download the image ----
 
+# Ensure the img directory exists (Git doesn't track empty directories)
+if (!dir.exists("app/img")) {
+    dir.create("app/img", recursive = TRUE)
+}
+
 # Create the destination file name
 # Using today() - 1 because the workflow runs at 4 AM UTC, so the prompt
 # was generated for "today" but by the time the image is created, we want

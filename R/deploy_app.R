@@ -15,9 +15,16 @@ setAccountInfo(
     secret = SHINY_APPS_SECRET
 )
 
+# Set environment variables for the deployed app
+# These are read by config.R at runtime on ShinyApps.io
 deployApp(
     appDir      = "app/",
     appName     = "gallery-of-the-day",
     account     = "youcanbeapirate",
-    forceUpdate = TRUE
+    forceUpdate = TRUE,
+    envVars     = c(
+        R2_PUBLIC_URL        = R2_PUBLIC_URL,
+        TURSO_DATABASE_URL   = TURSO_DATABASE_URL,
+        TURSO_AUTH_TOKEN     = TURSO_AUTH_TOKEN
+    )
 )

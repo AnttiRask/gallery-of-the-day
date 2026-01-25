@@ -4,23 +4,27 @@ if (OPENAI_API_KEY == "") {
     source("secret.R")
 }
 
+# Load Turso helper functions
+source("R/turso.R")
+
 # Load packages ----
 library(dplyr)
 library(httr2)
 library(jsonlite)
 library(lubridate)
 library(purrr)
-library(readr)
 library(stringr)
 
-# Check if today's prompt already exists ----
-file_path <- "app/data/prompts.csv"
-if (file.exists(file_path)) {
-    existing_prompts <- read_csv(file_path, col_types = cols(text = col_character(), date = col_character()))
-    if (as.character(today()) %in% existing_prompts$date) {
-        cat("Prompt for", as.character(today()), "already exists. Skipping.\n")
-        quit(save = "no", status = 0)
-    }
+# Check if today's prompt already exists in Turso ----
+today_date <- as.character(today())
+existing <- turso_query(
+    "SELECT COUNT(*) as count FROM prompts WHERE date = ?",
+    list(today_date)
+)
+
+if (as.integer(existing$count[1]) > 0) {
+    cat("Prompt for", today_date, "already exists. Skipping.\n")
+    quit(save = "no", status = 0)
 }
 
 # Create the API POST request ----
@@ -59,56 +63,30 @@ body    <- list(
     max_tokens  = max_tokens
 )
 
-# For the request You need to replace the OPENAI_API_KEY with your own API key
-# that you get after signing up: https://platform.openai.com/account/api-keys
-# OPENAI_API_KEY <- Sys.getenv("OPENAI_API_KEY")
+cat("Making GPT-4o-mini request...\n")
 
-request <- request(url) %>%
+response <- request(url) %>%
     req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
     req_body_json(body) %>%
     req_perform()
 
 # Check the request was successful (status code should be 200) ----
-request$status_code
+cat("Response status:", response$status_code, "\n")
 
-# Let's take a look at the content ----
-request %>%
-    resp_body_json() %>% 
-    glimpse()
-
-# Save the prompt ----
-# Chat Completions API returns content in choices[[1]]$message$content
-prompts_new <- request %>%
+# Extract the prompt text ----
+prompt_text <- response %>%
     resp_body_json() %>%
     pluck("choices", 1, "message", "content") %>%
-    as_tibble() %>%
-    rename(text = value) %>%
-    mutate(
-        text = str_remove_all(text, "\\\n"),
-        date = as.character(today())
-    )
+    str_remove_all("\\\n")  # Remove escaped newlines
 
-# Save the text output in a txt file ----
+cat("Generated prompt length:", nchar(prompt_text), "characters\n")
 
-# Define the file path
-file_path <- "app/data/prompts.csv"
+# Save to Turso database ----
+cat("Saving to Turso database...\n")
 
-# Check if the file exists and has data
-if (file.exists(file_path)) {
-    # Read existing data
-    prompts_existing <- read_csv(file_path, col_types = cols(text = col_character(), date = col_character()))
+turso_execute(
+    "INSERT INTO prompts (text, date) VALUES (?, ?)",
+    list(prompt_text, today_date)
+)
 
-    # Only combine if there's existing data
-    if (nrow(prompts_existing) > 0) {
-        prompts_combined <- bind_rows(prompts_existing, prompts_new)
-    } else {
-        prompts_combined <- prompts_new
-    }
-
-    # Write the combined data back to the CSV
-    write_csv(prompts_combined, file_path)
-
-} else {
-    # Write the new data to a new CSV file
-    write_csv(prompts_new, file_path)
-}
+cat("Prompt saved for", today_date, "\n")

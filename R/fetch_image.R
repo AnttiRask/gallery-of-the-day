@@ -10,6 +10,9 @@ R2_ACCESS_KEY_ID     <- Sys.getenv("R2_ACCESS_KEY_ID")
 R2_SECRET_ACCESS_KEY <- Sys.getenv("R2_SECRET_ACCESS_KEY")
 R2_BUCKET_NAME       <- Sys.getenv("R2_BUCKET_NAME")
 
+# Load Turso helper functions
+source("R/turso.R")
+
 # Load packages ----
 library(conflicted)
     conflicts_prefer(dplyr::filter)
@@ -20,7 +23,6 @@ library(httr2)
 library(jsonlite)
 library(lubridate)
 library(purrr)
-library(readr)
 library(stringr)
 
 # Check if today's image already exists in R2 ----
@@ -55,11 +57,9 @@ if (image_exists) {
 # Model
 model   <- "dall-e-3"
 
-# The text prompt
-prompts <- read_csv("app/data/prompts.csv")
-prompt  <- prompts %>%
-    filter(date == max(date)) %>%
-    pull(text)
+# The text prompt (from Turso database)
+prompt_result <- turso_query("SELECT text FROM prompts ORDER BY date DESC LIMIT 1")
+prompt <- prompt_result$text[1]
 
 cat("Prompt length:", nchar(prompt), "characters\n")
 

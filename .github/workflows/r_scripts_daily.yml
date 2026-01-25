@@ -29,12 +29,16 @@ jobs:
     - name: Run create_prompt.R
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+        TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
       run: Rscript R/create_prompt.R
       working-directory: ${{ github.workspace }}
 
     - name: Run fetch_image.R
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+        TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
         R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
         R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
         R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -49,13 +53,7 @@ jobs:
         SHINY_APPS_SECRET: ${{ secrets.SHINY_APPS_SECRET }}
         SHINY_APPS_TOKEN: ${{ secrets.SHINY_APPS_TOKEN }}
         R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
+        TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+        TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
       run: Rscript R/deploy_app.R
       working-directory: ${{ github.workspace }}
-
-    - name: Commit and push if there are changes
-      run: |
-        git config --local user.name github-actions
-        git config --local user.email "actions@github.com"
-        git add app/data/prompts.csv
-        git commit -m "Update dataset" || echo "No changes to commit"
-        git push origin main

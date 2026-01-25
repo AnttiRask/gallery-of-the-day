@@ -10,24 +10,9 @@ Future improvements for Gallery of the Day.
 - [x] Add idempotent checks (skip if prompt/image already exists)
 - [x] Organize R scripts into `R/` folder
 - [x] Update README to modern format
+- [x] Migrate image storage to Cloudflare R2
 
 ## Planned
-
-### External Image Storage
-
-Move images from GitHub to Cloudflare R2 storage.
-
-**Why:**
-- GitHub isn't designed for storing binary files
-- R2 is cost-effective (free tier: 10GB storage, 1M requests/month)
-- Better performance for image delivery
-
-**Tasks:**
-- Set up Cloudflare R2 bucket
-- Add R2 credentials to GitHub secrets
-- Update `fetch_image.R` to upload to R2
-- Update Shiny app to fetch images from R2 URL
-- Migrate existing images
 
 ### Lightweight Database
 

@@ -1,5 +1,6 @@
-# Source functions
+# Source functions and config
 source("www/functions.R")
+source("config.R")
 
 # Load packages
 library(dplyr)
@@ -7,9 +8,6 @@ library(readr)
 library(shiny)
 library(stringr)
 library(tibble)
-
-# R2 public URL for images
-R2_PUBLIC_URL <- Sys.getenv("R2_PUBLIC_URL")
 
 server <- function(input, output, session) {
     

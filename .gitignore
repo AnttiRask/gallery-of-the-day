@@ -1,6 +1,9 @@
 # Secret
 secret.R
 
+# Error logs
+error_log.txt
+
 # History files
 .Rhistory
 .Rapp.history

@@ -29,14 +29,14 @@ jobs:
     - name: Run create_prompt.R
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      run: Rscript create_prompt.R
+      run: Rscript R/create_prompt.R
       working-directory: ${{ github.workspace }}
 
     - name: Run fetch_image.R
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       timeout-minutes: 20
-      run: Rscript fetch_image.R
+      run: Rscript R/fetch_image.R
       working-directory: ${{ github.workspace }}
 
     - name: Run deploy_app.R
@@ -44,7 +44,7 @@ jobs:
         SHINY_APPS_NAME: ${{ secrets.SHINY_APPS_NAME }}
         SHINY_APPS_SECRET: ${{ secrets.SHINY_APPS_SECRET }}
         SHINY_APPS_TOKEN: ${{ secrets.SHINY_APPS_TOKEN }}
-      run: Rscript deploy_app.R
+      run: Rscript R/deploy_app.R
       working-directory: ${{ github.workspace }}
 
     - name: Commit and push if there are changes

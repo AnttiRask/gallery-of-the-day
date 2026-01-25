@@ -35,6 +35,10 @@ jobs:
     - name: Run fetch_image.R
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+        R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+        R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
       timeout-minutes: 20
       run: Rscript R/fetch_image.R
       working-directory: ${{ github.workspace }}
@@ -44,6 +48,7 @@ jobs:
         SHINY_APPS_NAME: ${{ secrets.SHINY_APPS_NAME }}
         SHINY_APPS_SECRET: ${{ secrets.SHINY_APPS_SECRET }}
         SHINY_APPS_TOKEN: ${{ secrets.SHINY_APPS_TOKEN }}
+        R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
       run: Rscript R/deploy_app.R
       working-directory: ${{ github.workspace }}
 
@@ -51,6 +56,6 @@ jobs:
       run: |
         git config --local user.name github-actions
         git config --local user.email "actions@github.com"
-        git add app/data/prompts.csv app/img/
+        git add app/data/prompts.csv
         git commit -m "Update dataset" || echo "No changes to commit"
         git push origin main

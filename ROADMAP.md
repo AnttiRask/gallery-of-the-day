@@ -9,10 +9,7 @@ Future improvements for Gallery of the Day.
 - [x] Add retry logic for DALL-E API calls
 - [x] Add idempotent checks (skip if prompt/image already exists)
 - [x] Organize R scripts into `R/` folder
-
-## In Progress
-
-- [ ] Update README to modern format
+- [x] Update README to modern format
 
 ## Planned
 

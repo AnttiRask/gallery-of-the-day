@@ -8,9 +8,10 @@ library(shiny)
 library(stringr)
 library(tibble)
 
+# R2 public URL for images
+R2_PUBLIC_URL <- Sys.getenv("R2_PUBLIC_URL")
+
 server <- function(input, output, session) {
-    
-    addResourcePath("img", "img/")
     
     # Read the prompts data reactively
     prompts         <- reactive({
@@ -57,18 +58,11 @@ server <- function(input, output, session) {
         selected_prompt <- filtered_data %>%
             slice(1) %>%
             pull(text)
-        
-        # Find the image for the selected date
-        selected_image <- list.files(
-            path       = "img/",
-            pattern    = str_c(selected_date, ".*"),
-            full.names = TRUE
-        )
-        
-        if (length(selected_image) == 0) {
-            return(NULL)  # Return NULL if no image found
-        }
-        
+
+        # Construct R2 URL for the image
+        image_filename <- str_glue("gallery-of-the-day-{selected_date}.png")
+        selected_image <- str_glue("{R2_PUBLIC_URL}/{image_filename}")
+
         list(
             prompt = selected_prompt,
             image  = selected_image

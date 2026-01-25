@@ -4,9 +4,16 @@ if (OPENAI_API_KEY == "") {
     source("secret.R")
 }
 
+# Get R2 credentials from environment variables or secret.R (already sourced above)
+R2_ACCOUNT_ID        <- Sys.getenv("R2_ACCOUNT_ID")
+R2_ACCESS_KEY_ID     <- Sys.getenv("R2_ACCESS_KEY_ID")
+R2_SECRET_ACCESS_KEY <- Sys.getenv("R2_SECRET_ACCESS_KEY")
+R2_BUCKET_NAME       <- Sys.getenv("R2_BUCKET_NAME")
+
 # Load packages ----
 library(conflicted)
     conflicts_prefer(dplyr::filter)
+library(aws.s3)
 library(curl)
 library(dplyr)
 library(httr2)
@@ -16,11 +23,28 @@ library(purrr)
 library(readr)
 library(stringr)
 
-# Check if today's image already exists ----
+# Check if today's image already exists in R2 ----
 image_date <- today()
-image_path <- str_glue("app/img/gallery-of-the-day-{image_date}.png")
-if (file.exists(image_path)) {
-    cat("Image for", as.character(image_date), "already exists. Skipping.\n")
+object_key <- str_glue("gallery-of-the-day-{image_date}.png")
+r2_endpoint <- str_glue("{R2_ACCOUNT_ID}.r2.cloudflarestorage.com")
+
+# Check if image exists in R2
+image_exists <- tryCatch({
+    head_object(
+        object   = object_key,
+        bucket   = R2_BUCKET_NAME,
+        key      = R2_ACCESS_KEY_ID,
+        secret   = R2_SECRET_ACCESS_KEY,
+        base_url = r2_endpoint,
+        region   = ""
+    )
+    TRUE
+}, error = function(e) {
+    FALSE
+})
+
+if (image_exists) {
+    cat("Image for", as.character(image_date), "already exists in R2. Skipping.\n")
     quit(save = "no", status = 0)
 }
 
@@ -105,17 +129,33 @@ url_img <- response %>%
 
 cat("Got image URL, downloading...\n")
 
-# Download the image ----
+# Download and upload to R2 ----
 
-# Ensure the img directory exists (Git doesn't track empty directories)
-if (!dir.exists("app/img")) {
-    dir.create("app/img", recursive = TRUE)
+# Download to temp file first
+temp_file <- tempfile(fileext = ".png")
+curl_download(url_img, temp_file, mode = "wb")
+cat("Image downloaded to temp file\n")
+
+# Upload to Cloudflare R2
+cat("Uploading to R2...\n")
+
+put_result <- put_object(
+    file     = temp_file,
+    object   = object_key,
+    bucket   = R2_BUCKET_NAME,
+    key      = R2_ACCESS_KEY_ID,
+    secret   = R2_SECRET_ACCESS_KEY,
+    base_url = r2_endpoint,
+    region   = ""
+)
+
+if (put_result) {
+    cat("Image uploaded to R2:", object_key, "\n")
+} else {
+    stop("Failed to upload image to R2")
 }
 
-# Create the destination file name (must match the date in prompts.csv)
-destfile <- str_glue("app/img/gallery-of-the-day-{today()}.png")
+# Clean up temp file
+unlink(temp_file)
 
-# Download the file at the URL and save it to 'destfile'
-curl_download(url_img, destfile, mode = "wb")
-
-cat("Image saved to:", destfile, "\n")
+cat("Done!\n")

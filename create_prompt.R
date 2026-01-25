@@ -1,5 +1,8 @@
-# Source the secret ----
-source("secret.R")
+# Get API key from environment variable (GitHub Actions) or secret.R (local)
+OPENAI_API_KEY <- Sys.getenv("OPENAI_API_KEY")
+if (OPENAI_API_KEY == "") {
+    source("secret.R")
+}
 
 # Load packages ----
 library(dplyr)

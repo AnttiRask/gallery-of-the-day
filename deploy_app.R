@@ -1,14 +1,13 @@
 library(rsconnect)
 
-# GitHub Actions
-# setAccountInfo(
-#     name   = Sys.getenv("SHINY_APPS_NAME"),
-#     token  = Sys.getenv("SHINY_APPS_TOKEN"),
-#     secret = Sys.getenv("SHINY_APPS_SECRET")
-# )
-
-# Locally
-source("secret.R")
+# Get credentials from environment variables (GitHub Actions) or secret.R (local)
+SHINY_APPS_NAME <- Sys.getenv("SHINY_APPS_NAME")
+if (SHINY_APPS_NAME == "") {
+    source("secret.R")
+} else {
+    SHINY_APPS_TOKEN <- Sys.getenv("SHINY_APPS_TOKEN")
+    SHINY_APPS_SECRET <- Sys.getenv("SHINY_APPS_SECRET")
+}
 
 setAccountInfo(
     name   = SHINY_APPS_NAME,

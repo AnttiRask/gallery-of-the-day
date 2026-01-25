@@ -16,6 +16,15 @@ library(purrr)
 library(readr)
 library(stringr)
 
+# Check if today's image already exists ----
+# Note: Using today() - 1 because workflow runs at 4 AM UTC
+image_date <- today() - 1
+image_path <- str_glue("app/img/gallery-of-the-day-{image_date}.png")
+if (file.exists(image_path)) {
+    cat("Image for", as.character(image_date), "already exists. Skipping.\n")
+    quit(save = "no", status = 0)
+}
+
 # Create the API POST request ----
 
 ## Insert the arguments ----
@@ -28,6 +37,8 @@ prompts <- read_csv("app/data/prompts.csv")
 prompt  <- prompts %>%
     filter(date == max(date)) %>%
     pull(text)
+
+cat("Prompt length:", nchar(prompt), "characters\n")
 
 # The number of images
 n       <- 1
@@ -52,68 +63,48 @@ body    <- list(
     quality = quality
 )
 
-# For the request you need to replace the OPENAI_API_KEY with your own API key
-# that you get after signing up: https://platform.openai.com/account/api-keys
-# OPENAI_API_KEY <- Sys.getenv("OPENAI_API_KEY")
+# Make the request with retry logic
+cat("Making DALL-E 3 request...\n")
 
-max_retries  <- 3
-initial_wait <- 60  # Wait time in seconds (DALL-E 3 can be slow)
-
-make_request <- function(attempt) {
-    response <- request(url) %>%
+response <- tryCatch({
+    request(url) %>%
         req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
         req_body_json(body) %>%
+        req_retry(max_tries = 3, backoff = ~ 60) %>%
         req_perform()
-    
-    if (is.null(response)) {
-        cat("Error: Response is NULL\n")
-        return(NULL)
-    }
-    
-    if (response$status_code == 429) {
-        Sys.sleep(initial_wait * attempt)
-        return(NULL)
-    } else {
-        return(response)
-    }
-}
+}, error = function(e) {
+    cat("Error making request:", conditionMessage(e), "\n")
 
-safe_request <- possibly(
-    make_request,
-    otherwise = NULL
-)
+    # Log the error
+    log_message <- str_c(
+        now(), " - DALL-E request failed: ", conditionMessage(e)
+    )
+    write(log_message, file = "error_log.txt", append = TRUE)
 
-responses    <- map(1:max_retries, safe_request) %>%
-    compact() %>%
-    first()
+    stop(e)
+})
+
+cat("Response status:", response$status_code, "\n")
 
 # Check if we got a successful response
-if (is.null(responses) || responses$status_code != 200) {
+if (response$status_code != 200) {
+    error_body <- resp_body_json(response)
+    cat("Error response:", toJSON(error_body, auto_unbox = TRUE), "\n")
+
     log_message <- str_c(
-        now(),
-        " - Request failed after ",
-        max_retries,
-        " retries. Status: ",
-        responses$status_code,
-        " -",
-        responses$message
+        now(), " - Request failed with status ", response$status_code
     )
-    
-    # Example of logging
     write(log_message, file = "error_log.txt", append = TRUE)
+
+    stop("DALL-E API returned error status: ", response$status_code)
 }
 
-# request <- request(url) %>%
-#     req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
-#     req_body_json(body) %>%
-#     req_perform()
-
 # Save the image URL ----
-url_img <- responses %>%
+url_img <- response %>%
     resp_body_json() %>%
-    pluck("data") %>%
-    unlist() %>%
-    pluck("url")
+    pluck("data", 1, "url")
+
+cat("Got image URL, downloading...\n")
 
 # Download the image ----
 
@@ -123,5 +114,7 @@ url_img <- responses %>%
 # it associated with the correct calendar day for the historical event
 destfile <- str_glue("app/img/gallery-of-the-day-{today() - 1}.png")
 
-# Download the file at the URLand save it to 'destfile'
+# Download the file at the URL and save it to 'destfile'
 curl_download(url_img, destfile, mode = "wb")
+
+cat("Image saved to:", destfile, "\n")

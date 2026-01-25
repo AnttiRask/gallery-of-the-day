@@ -13,6 +13,16 @@ library(purrr)
 library(readr)
 library(stringr)
 
+# Check if today's prompt already exists ----
+file_path <- "app/data/prompts.csv"
+if (file.exists(file_path)) {
+    existing_prompts <- read_csv(file_path, col_types = cols(text = col_character(), date = col_character()))
+    if (as.character(today()) %in% existing_prompts$date) {
+        cat("Prompt for", as.character(today()), "already exists. Skipping.\n")
+        quit(save = "no", status = 0)
+    }
+}
+
 # Create the API POST request ----
 
 ## Insert the arguments ----

@@ -17,8 +17,7 @@ library(readr)
 library(stringr)
 
 # Check if today's image already exists ----
-# Note: Using today() - 1 because workflow runs at 4 AM UTC
-image_date <- today() - 1
+image_date <- today()
 image_path <- str_glue("app/img/gallery-of-the-day-{image_date}.png")
 if (file.exists(image_path)) {
     cat("Image for", as.character(image_date), "already exists. Skipping.\n")
@@ -113,11 +112,8 @@ if (!dir.exists("app/img")) {
     dir.create("app/img", recursive = TRUE)
 }
 
-# Create the destination file name
-# Using today() - 1 because the workflow runs at 4 AM UTC, so the prompt
-# was generated for "today" but by the time the image is created, we want
-# it associated with the correct calendar day for the historical event
-destfile <- str_glue("app/img/gallery-of-the-day-{today() - 1}.png")
+# Create the destination file name (must match the date in prompts.csv)
+destfile <- str_glue("app/img/gallery-of-the-day-{today()}.png")
 
 # Download the file at the URL and save it to 'destfile'
 curl_download(url_img, destfile, mode = "wb")

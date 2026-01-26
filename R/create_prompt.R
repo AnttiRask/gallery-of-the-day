@@ -33,7 +33,13 @@ if (as.integer(existing$count[1]) > 0) {
 
 # The text prompt. Explore!
 date        <- today() %>% format("%B %d")
-prompt      <- str_glue("Could you provide a brief description of a significant historical event that happened on {date} in history? Please include key visual details such as the main figures involved, their clothing, the setting, and any notable objects or symbols. Emphasize elements that would be impactful in a visual representation, and describe the emotional tone or atmosphere of the event.")
+prompt      <- str_glue("Could you provide a brief description of a significant historical event that happened on {date} in history? Please include key visual details such as the main figures involved, their clothing, the setting, and any notable objects or symbols. Emphasize elements that would be impactful in a visual representation, and describe the emotional tone or atmosphere of the event.
+
+IMPORTANT: This description will be used to generate an AI image, so please:
+- Focus on peaceful, celebratory, or constructive moments in history
+- Avoid describing violence, weapons, battles, or conflict
+- If the most notable event involves conflict, find an alternative event or focus on a peaceful aspect (e.g., diplomacy, aftermath, memorial)
+- Emphasize artistic and symbolic elements over graphic details")
 
 # Max number of tokens used
 max_tokens  <- 4000

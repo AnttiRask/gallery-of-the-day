@@ -63,6 +63,30 @@ prompt <- prompt_result$text[1]
 
 cat("Prompt length:", nchar(prompt), "characters\n")
 
+# Function to sanitize a prompt that was rejected by DALL-E
+sanitize_prompt <- function(original_prompt) {
+    cat("Sanitizing prompt for DALL-E...\n")
+    body <- list(
+        model       = "gpt-4o-mini",
+        messages    = list(
+            list(role = "system", content = "You are an expert at rewriting historical event descriptions to be suitable for AI image generation. Rewrite the prompt to focus on peaceful, artistic, and symbolic elements while avoiding any violence, conflict, weapons, or controversial imagery. Keep the historical context but make it safe for image generation."),
+            list(role = "user", content = str_glue("Please rewrite this historical event description to be suitable for DALL-E image generation (avoid violence, weapons, conflict):\n\n{original_prompt}"))
+        ),
+        temperature = 0.7,
+        max_tokens  = 2000
+    )
+
+    response <- request("https://api.openai.com/v1/chat/completions") %>%
+        req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
+        req_body_json(body) %>%
+        req_perform()
+
+    response %>%
+        resp_body_json() %>%
+        pluck("choices", 1, "message", "content") %>%
+        str_remove_all("\\\n")
+}
+
 # The number of images
 n       <- 1
 
@@ -77,50 +101,54 @@ quality <- "standard"
 # The URL for this particular use case (see documentation for others)
 url <- "https://api.openai.com/v1/images/generations"
 
-# Gather the arguments as the body of the request
-body    <- list(
-    model   = model,
-    prompt  = prompt,
-    n       = n,
-    size    = size,
-    quality = quality
-)
+# Function to make DALL-E request
+make_dalle_request <- function(prompt_text) {
+    body <- list(
+        model   = model,
+        prompt  = prompt_text,
+        n       = n,
+        size    = size,
+        quality = quality
+    )
 
-# Make the request with retry logic
-cat("Making DALL-E 3 request...\n")
-
-response <- tryCatch({
     request(url) %>%
         req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
         req_body_json(body) %>%
         req_retry(max_tries = 3, backoff = ~ 60) %>%
         req_perform()
+}
+
+# Make the request with retry logic
+cat("Making DALL-E 3 request...\n")
+
+response <- tryCatch({
+    make_dalle_request(prompt)
 }, error = function(e) {
-    cat("Error making request:", conditionMessage(e), "\n")
-
-    # Log the error
-    log_message <- str_c(
-        now(), " - DALL-E request failed: ", conditionMessage(e)
-    )
-    write(log_message, file = "error_log.txt", append = TRUE)
-
-    stop(e)
+    cat("DALL-E error (will retry with sanitized prompt):", conditionMessage(e), "\n")
+    NULL
 })
 
-cat("Response status:", response$status_code, "\n")
+# If first attempt failed, try with sanitized prompt
+if (is.null(response)) {
+    sanitized_prompt <- sanitize_prompt(prompt)
+    cat("Retrying with sanitized prompt...\n")
+    cat("Sanitized prompt length:", nchar(sanitized_prompt), "characters\n")
 
-# Check if we got a successful response
-if (response$status_code != 200) {
-    error_body <- resp_body_json(response)
-    cat("Error response:", toJSON(error_body, auto_unbox = TRUE), "\n")
+    response <- tryCatch({
+        make_dalle_request(sanitized_prompt)
+    }, error = function(e) {
+        cat("Error making request:", conditionMessage(e), "\n")
 
-    log_message <- str_c(
-        now(), " - Request failed with status ", response$status_code
-    )
-    write(log_message, file = "error_log.txt", append = TRUE)
+        log_message <- str_c(
+            now(), " - DALL-E request failed even after sanitization: ", conditionMessage(e)
+        )
+        write(log_message, file = "error_log.txt", append = TRUE)
 
-    stop("DALL-E API returned error status: ", response$status_code)
+        stop(e)
+    })
 }
+
+cat("Response status:", response$status_code, "\n")
 
 # Save the image URL ----
 url_img <- response %>%

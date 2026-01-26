@@ -18,20 +18,22 @@ setAccountInfo(
     secret = SHINY_APPS_SECRET
 )
 
-# Set environment variables that will be deployed to ShinyApps.io
-# rsconnect reads these from the current environment
-Sys.setenv(
-    R2_PUBLIC_URL      = R2_PUBLIC_URL,
-    TURSO_DATABASE_URL = TURSO_DATABASE_URL,
-    TURSO_AUTH_TOKEN   = TURSO_AUTH_TOKEN
-)
-
-# Deploy the app with environment variables
-# envVars takes just the names of env vars to include
+# Deploy the app
 deployApp(
     appDir      = "app/",
     appName     = "gallery-of-the-day",
     account     = "youcanbeapirate",
-    forceUpdate = TRUE,
-    envVars     = c("R2_PUBLIC_URL", "TURSO_DATABASE_URL", "TURSO_AUTH_TOKEN")
+    forceUpdate = TRUE
+)
+
+# Set environment variables for the deployed app
+# This must be done separately on shinyapps.io
+rsconnect::setEnvVars(
+    appName = "gallery-of-the-day",
+    account = "youcanbeapirate",
+    envVars = c(
+        R2_PUBLIC_URL      = R2_PUBLIC_URL,
+        TURSO_DATABASE_URL = TURSO_DATABASE_URL,
+        TURSO_AUTH_TOKEN   = TURSO_AUTH_TOKEN
+    )
 )

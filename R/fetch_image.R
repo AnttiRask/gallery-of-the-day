@@ -138,18 +138,28 @@ cat("Image downloaded to temp file\n")
 
 # Upload to Cloudflare R2
 cat("Uploading to R2...\n")
+cat("Bucket:", R2_BUCKET_NAME, "\n")
+cat("Object key:", object_key, "\n")
+cat("Endpoint:", r2_endpoint, "\n")
 
-put_result <- put_object(
-    file     = temp_file,
-    object   = object_key,
-    bucket   = R2_BUCKET_NAME,
-    key      = R2_ACCESS_KEY_ID,
-    secret   = R2_SECRET_ACCESS_KEY,
-    base_url = r2_endpoint,
-    region   = ""
-)
+put_result <- tryCatch({
+    put_object(
+        file     = temp_file,
+        object   = object_key,
+        bucket   = R2_BUCKET_NAME,
+        key      = R2_ACCESS_KEY_ID,
+        secret   = R2_SECRET_ACCESS_KEY,
+        base_url = r2_endpoint,
+        region   = ""
+    )
+}, error = function(e) {
+    cat("R2 upload error:", conditionMessage(e), "\n")
+    FALSE
+})
 
-if (put_result) {
+cat("Put result:", as.character(put_result), "\n")
+
+if (isTRUE(put_result)) {
     cat("Image uploaded to R2:", object_key, "\n")
 } else {
     stop("Failed to upload image to R2")

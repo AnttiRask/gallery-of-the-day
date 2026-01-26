@@ -47,13 +47,16 @@ jobs:
       run: Rscript R/fetch_image.R
       working-directory: ${{ github.workspace }}
 
+    - name: Create .Renviron for ShinyApps.io
+      run: |
+        echo "R2_PUBLIC_URL=${{ secrets.R2_PUBLIC_URL }}" >> app/.Renviron
+        echo "TURSO_DATABASE_URL=${{ secrets.TURSO_DATABASE_URL }}" >> app/.Renviron
+        echo "TURSO_AUTH_TOKEN=${{ secrets.TURSO_AUTH_TOKEN }}" >> app/.Renviron
+
     - name: Run deploy_app.R
       env:
         SHINY_APPS_NAME: ${{ secrets.SHINY_APPS_NAME }}
         SHINY_APPS_SECRET: ${{ secrets.SHINY_APPS_SECRET }}
         SHINY_APPS_TOKEN: ${{ secrets.SHINY_APPS_TOKEN }}
-        R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
-        TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
-        TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
       run: Rscript R/deploy_app.R
       working-directory: ${{ github.workspace }}

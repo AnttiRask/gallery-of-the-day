@@ -1,4 +1,3 @@
-source("app/config.R")
 library(rsconnect)
 
 # Get credentials from environment variables (GitHub Actions) or secret.R (local)

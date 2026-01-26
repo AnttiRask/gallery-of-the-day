@@ -5,8 +5,11 @@ SHINY_APPS_NAME <- Sys.getenv("SHINY_APPS_NAME")
 if (SHINY_APPS_NAME == "") {
     source("secret.R")
 } else {
-    SHINY_APPS_TOKEN <- Sys.getenv("SHINY_APPS_TOKEN")
-    SHINY_APPS_SECRET <- Sys.getenv("SHINY_APPS_SECRET")
+    SHINY_APPS_TOKEN     <- Sys.getenv("SHINY_APPS_TOKEN")
+    SHINY_APPS_SECRET    <- Sys.getenv("SHINY_APPS_SECRET")
+    R2_PUBLIC_URL        <- Sys.getenv("R2_PUBLIC_URL")
+    TURSO_DATABASE_URL   <- Sys.getenv("TURSO_DATABASE_URL")
+    TURSO_AUTH_TOKEN     <- Sys.getenv("TURSO_AUTH_TOKEN")
 }
 
 setAccountInfo(

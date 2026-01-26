@@ -31,6 +31,7 @@ object_key <- str_glue("gallery-of-the-day-{image_date}.png")
 r2_endpoint <- str_glue("{R2_ACCOUNT_ID}.r2.cloudflarestorage.com")
 
 # Check if image exists in R2
+# head_object returns TRUE if exists, FALSE if 404
 image_exists <- tryCatch({
     head_object(
         object   = object_key,
@@ -40,7 +41,6 @@ image_exists <- tryCatch({
         base_url = r2_endpoint,
         region   = ""
     )
-    TRUE
 }, error = function(e) {
     FALSE
 })

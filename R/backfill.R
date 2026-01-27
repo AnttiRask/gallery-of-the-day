@@ -100,6 +100,37 @@ sanitize_prompt <- function(original_prompt) {
         str_remove_all("\\\n")
 }
 
+# Function to get an alternative event for a date when the original is too problematic
+get_alternative_event <- function(target_date) {
+    date_str <- format(target_date, "%B %d")
+    cat("  Requesting alternative event for", date_str, "...\n")
+
+    body <- list(
+        model       = "gpt-4o-mini",
+        messages    = list(
+            list(role = "system", content = "You are a historian who specializes in finding positive, uplifting historical events suitable for artistic visualization."),
+            list(role = "user", content = str_glue("I need a DIFFERENT historical event for {date_str} that is suitable for AI image generation. Please choose an event that is:
+- Peaceful, celebratory, or scientifically/culturally significant
+- NOT related to wars, conflicts, tragedies, or controversial topics
+- Visually interesting (art, science discoveries, cultural celebrations, sports achievements, space exploration, etc.)
+
+Provide a vivid visual description of this event including the setting, people involved, their clothing, and the atmosphere. Focus on elements that would make a beautiful, uplifting image."))
+        ),
+        temperature = 0.9,
+        max_tokens  = 2000
+    )
+
+    response <- request("https://api.openai.com/v1/chat/completions") %>%
+        req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
+        req_body_json(body) %>%
+        req_perform()
+
+    response %>%
+        resp_body_json() %>%
+        pluck("choices", 1, "message", "content") %>%
+        str_remove_all("\\\n")
+}
+
 # Function to generate image for a prompt
 # Returns NULL if DALL-E rejects the prompt (content policy)
 generate_image <- function(prompt_text) {
@@ -127,8 +158,8 @@ generate_image <- function(prompt_text) {
     })
 }
 
-# Try to generate image, sanitize and retry if rejected
-generate_image_with_retry <- function(prompt_text) {
+# Try to generate image, sanitize and retry if rejected, then try alternative event
+generate_image_with_retry <- function(prompt_text, target_date) {
     # First attempt
     image_url <- generate_image(prompt_text)
 
@@ -141,7 +172,18 @@ generate_image_with_retry <- function(prompt_text) {
     sanitized <- sanitize_prompt(prompt_text)
     Sys.sleep(2)
 
-    generate_image(sanitized)
+    image_url <- generate_image(sanitized)
+
+    if (!is.null(image_url)) {
+        return(image_url)
+    }
+
+    # If still rejected, try completely different event
+    cat("  Retrying with alternative event...\n")
+    alternative <- get_alternative_event(target_date)
+    Sys.sleep(2)
+
+    generate_image(alternative)
 }
 
 # Process each date
@@ -195,7 +237,7 @@ for (target_date in dates) {
         cat("  Image already exists in R2\n")
     } else {
         cat("  Generating image with DALL-E 3...\n")
-        image_url <- generate_image_with_retry(prompt_text)
+        image_url <- generate_image_with_retry(prompt_text, target_date)
 
         if (is.null(image_url)) {
             cat("  SKIPPING: DALL-E rejected this prompt (content policy)\n")

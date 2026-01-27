@@ -87,6 +87,37 @@ sanitize_prompt <- function(original_prompt) {
         str_remove_all("\\\n")
 }
 
+# Function to get an alternative event for a date when the original is too problematic
+get_alternative_event <- function(target_date) {
+    date_str <- format(target_date, "%B %d")
+    cat("Requesting alternative event for", date_str, "...\n")
+
+    body <- list(
+        model       = "gpt-4o-mini",
+        messages    = list(
+            list(role = "system", content = "You are a historian who specializes in finding positive, uplifting historical events suitable for artistic visualization."),
+            list(role = "user", content = str_glue("I need a DIFFERENT historical event for {date_str} that is suitable for AI image generation. Please choose an event that is:
+- Peaceful, celebratory, or scientifically/culturally significant
+- NOT related to wars, conflicts, tragedies, or controversial topics
+- Visually interesting (art, science discoveries, cultural celebrations, sports achievements, space exploration, etc.)
+
+Provide a vivid visual description of this event including the setting, people involved, their clothing, and the atmosphere. Focus on elements that would make a beautiful, uplifting image."))
+        ),
+        temperature = 0.9,
+        max_tokens  = 2000
+    )
+
+    response <- request("https://api.openai.com/v1/chat/completions") %>%
+        req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
+        req_body_json(body) %>%
+        req_perform()
+
+    response %>%
+        resp_body_json() %>%
+        pluck("choices", 1, "message", "content") %>%
+        str_remove_all("\\\n")
+}
+
 # The number of images
 n       <- 1
 
@@ -121,6 +152,9 @@ make_dalle_request <- function(prompt_text) {
 # Make the request with retry logic
 cat("Making DALL-E 3 request...\n")
 
+used_prompt <- prompt  # Track which prompt was actually used
+prompt_was_changed <- FALSE
+
 response <- tryCatch({
     make_dalle_request(prompt)
 }, error = function(e) {
@@ -137,15 +171,46 @@ if (is.null(response)) {
     response <- tryCatch({
         make_dalle_request(sanitized_prompt)
     }, error = function(e) {
+        cat("Sanitized prompt also rejected:", conditionMessage(e), "\n")
+        NULL
+    })
+
+    if (!is.null(response)) {
+        used_prompt <- sanitized_prompt
+        prompt_was_changed <- TRUE
+    }
+}
+
+# If sanitized prompt also failed, try with completely different event
+if (is.null(response)) {
+    alternative_prompt <- get_alternative_event(image_date)
+    cat("Retrying with alternative event...\n")
+    cat("Alternative prompt length:", nchar(alternative_prompt), "characters\n")
+
+    response <- tryCatch({
+        make_dalle_request(alternative_prompt)
+    }, error = function(e) {
         cat("Error making request:", conditionMessage(e), "\n")
 
         log_message <- str_c(
-            now(), " - DALL-E request failed even after sanitization: ", conditionMessage(e)
+            now(), " - DALL-E request failed even with alternative event: ", conditionMessage(e)
         )
         write(log_message, file = "error_log.txt", append = TRUE)
 
         stop(e)
     })
+
+    used_prompt <- alternative_prompt
+    prompt_was_changed <- TRUE
+}
+
+# Update the prompt in Turso if we had to use a different one
+if (prompt_was_changed) {
+    cat("Updating prompt in Turso with the successful version...\n")
+    turso_execute(
+        "UPDATE prompts SET text = ? WHERE date = ?",
+        list(used_prompt, as.character(image_date))
+    )
 }
 
 cat("Response status:", response$status_code, "\n")

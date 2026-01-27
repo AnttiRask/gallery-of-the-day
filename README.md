@@ -2,7 +2,7 @@
 
 AI-generated art gallery that creates a new image daily based on historical events.
 
-**[View Live App](https://youcanbeapirate.shinyapps.io/gallery-of-the-day/)**
+**[View Live App](https://youcanbeapirate.shinyapps.io/gallery-of-the-day/)** | **[Project Page](https://anttirask.github.io/gallery-of-the-day/)**
 
 ![Gallery of the Day](img/gallery-of-the-day-example.png)
 
@@ -19,8 +19,10 @@ AI-generated art gallery that creates a new image daily based on historical even
 | Component | Technology |
 |-----------|------------|
 | Language | R |
-| Web Framework | Shiny |
+| Web Framework | Shiny + bslib |
 | AI Models | GPT-4o-mini, DALL-E 3 |
+| Database | Turso (libSQL) |
+| Image Storage | Cloudflare R2 |
 | Automation | GitHub Actions |
 | Hosting | ShinyApps.io |
 | Package Management | renv |
@@ -32,17 +34,17 @@ gallery-of-the-day/
 ├── R/                              # Automation scripts
 │   ├── create_prompt.R             # Generates historical event descriptions
 │   ├── fetch_image.R               # Creates and downloads DALL-E images
-│   └── deploy_app.R                # Deploys to ShinyApps.io
+│   ├── deploy_app.R                # Deploys to ShinyApps.io
+│   └── backfill.R                  # Backfill missing dates
 ├── app/                            # Shiny application
-│   ├── data/
-│   │   └── prompts.csv             # Historical event descriptions
-│   ├── img/                        # Generated images
 │   ├── www/
 │   │   ├── functions.R             # Helper functions
 │   │   └── styles.css              # Custom styling
-│   ├── ui.R                        # User interface
+│   ├── ui.R                        # User interface (bslib + Bootstrap 5)
 │   ├── server.R                    # Server logic
 │   └── run.R                       # App entry point
+├── docs/                           # GitHub Pages site
+│   └── index.html                  # Landing page
 ├── .github/workflows/
 │   └── r_scripts_daily.yml         # Daily automation workflow
 ├── renv.lock                       # Package dependencies
@@ -120,17 +122,24 @@ Add these secrets to your repository:
 | Secret | Description |
 |--------|-------------|
 | `OPENAI_API_KEY` | Your OpenAI API key |
+| `TURSO_DATABASE_URL` | Turso database URL |
+| `TURSO_AUTH_TOKEN` | Turso authentication token |
+| `R2_ACCESS_KEY_ID` | Cloudflare R2 access key |
+| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 secret key |
+| `R2_ACCOUNT_ID` | Cloudflare account ID |
+| `R2_PUBLIC_URL` | R2 public bucket URL |
 | `SHINY_APPS_NAME` | ShinyApps.io account name |
 | `SHINY_APPS_TOKEN` | ShinyApps.io token |
 | `SHINY_APPS_SECRET` | ShinyApps.io secret |
 
 ## Roadmap
 
-See [ROADMAP.md](ROADMAP.md) for planned improvements including:
-- External image storage (Cloudflare R2)
-- Database for prompt storage
-- Shiny app UI makeover
-- GitHub Pages documentation
+See [ROADMAP.md](ROADMAP.md) for future ideas. Recent completions:
+
+- Cloudflare R2 image storage
+- Turso database for prompts
+- Shiny app UI makeover (bslib, dark theme)
+- GitHub Pages landing page
 
 ## License
 

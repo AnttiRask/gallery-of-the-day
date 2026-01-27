@@ -14,18 +14,7 @@ Future improvements for Gallery of the Day.
 - [x] Migrate to Turso database (replaced CSV storage)
 - [x] Add DALL-E prompt retry with sanitization and alternative events
 - [x] Shiny App Makeover (bslib, Bootstrap 5, dark theme, mobile responsive)
-
-## Planned
-
-### GitHub Pages
-
-Add a GitHub Pages site for documentation.
-
-**Could include:**
-- Project documentation
-- Image archive/gallery view
-- Blog posts about interesting historical events
-- Technical write-ups
+- [x] GitHub Pages landing page
 
 ## Future Ideas
 

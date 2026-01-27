@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery of the Day | AI-Generated Historical Art</title>
+    <meta name="description" content="Daily AI-generated images inspired by historical events. Powered by GPT-4o-mini and DALL-E 3.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #C1272D;
+            --primary-dark: #a02025;
+            --silver: #C0C0C0;
+            --black: #000000;
+            --white: #ffffff;
+            --text: #C0C0C0;
+            --text-light: #909090;
+            --bg: #000000;
+            --bg-alt: #111111;
+            --border: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'EB Garamond', Georgia, serif;
+            color: var(--text);
+            line-height: 1.6;
+            background: var(--bg);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+            background: linear-gradient(135deg, #000 0%, #111 100%);
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .hero h1 span {
+            color: var(--primary);
+        }
+
+        .hero .tagline {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto 32px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-alt);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: #1a1a1a;
+            transform: translateY(-2px);
+        }
+
+        /* Screenshot */
+        .screenshot {
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .screenshot img {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+        }
+
+        /* Features */
+        .features {
+            padding: 60px 0;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 40px;
+            color: var(--text);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg-alt);
+            transition: box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 4px 12px rgba(193, 39, 45, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .feature-card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* Tech Stack */
+        .tech {
+            padding: 60px 0;
+            background: var(--bg-alt);
+        }
+
+        .tech h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 40px;
+            color: var(--text);
+        }
+
+        .tech-grid {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .tech-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tech-badge {
+            background: var(--bg);
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .tech-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 60px 0;
+        }
+
+        .how-it-works h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 40px;
+            color: var(--text);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+        }
+
+        .step {
+            text-align: center;
+            padding: 24px;
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin: 0 auto 16px;
+        }
+
+        .step h3 {
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .step p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* Powered By */
+        .powered-by {
+            padding: 60px 0;
+            background: var(--bg-alt);
+        }
+
+        .powered-by h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 40px;
+            color: var(--text);
+        }
+
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .api-card {
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg);
+        }
+
+        .api-card h3 {
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+        }
+
+        .api-card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        footer p {
+            color: var(--text-light);
+            margin-bottom: 16px;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero {
+                padding: 60px 0 40px;
+            }
+
+            .features, .tech, .how-it-works, .powered-by {
+                padding: 40px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <div class="container">
+            <h1><span>Gallery</span> of the Day</h1>
+            <p class="tagline">
+                Daily AI-generated images inspired by significant historical events.
+                Explore the past through the lens of artificial intelligence.
+            </p>
+            <div class="cta-buttons">
+                <a href="https://youcanbeapirate.shinyapps.io/gallery-of-the-day/" class="btn btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                    </svg>
+                    Try Live App
+                </a>
+                <a href="https://github.com/anttirask/gallery-of-the-day" class="btn btn-secondary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                    </svg>
+                    View Source
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="screenshot">
+        <div class="container">
+            <img src="gallery-of-the-day-example.png" alt="Gallery of the Day screenshot showing the Shiny app interface">
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2>Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📅</div>
+                    <h3>Daily Updates</h3>
+                    <p>A new AI-generated image is created every day, inspired by a historical event from that date.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>DALL-E 3 Art</h3>
+                    <p>High-quality images generated using OpenAI's DALL-E 3, creating unique artistic interpretations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📜</div>
+                    <h3>Historical Events</h3>
+                    <p>Explore significant moments from history through AI-generated visual narratives.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌙</div>
+                    <h3>Dark Theme</h3>
+                    <p>Elegant dark interface designed for comfortable viewing and to let the artwork shine.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Mobile Responsive</h3>
+                    <p>Fully responsive design that works beautifully on any device or screen size.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔓</div>
+                    <h3>Open Source</h3>
+                    <p>Fully open source project. Explore the code, learn, and contribute on GitHub.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="tech">
+        <div class="container">
+            <h2>Built With</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <div class="tech-badge">R</div>
+                    <span class="tech-label">Language</span>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-badge">Shiny</div>
+                    <span class="tech-label">Web Framework</span>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-badge">OpenAI</div>
+                    <span class="tech-label">AI Provider</span>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-badge">Turso</div>
+                    <span class="tech-label">Database</span>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-badge">Cloudflare R2</div>
+                    <span class="tech-label">Image Storage</span>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-badge">GitHub Actions</div>
+                    <span class="tech-label">Automation</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Fetch Event</h3>
+                    <p>GPT-4o-mini retrieves a significant historical event for today's date.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Create Prompt</h3>
+                    <p>The event is transformed into an artistic image prompt.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Generate Image</h3>
+                    <p>DALL-E 3 creates a unique image based on the prompt.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Display</h3>
+                    <p>The image is stored and displayed in the Shiny app.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="powered-by">
+        <div class="container">
+            <h2>Powered By</h2>
+            <div class="api-grid">
+                <div class="api-card">
+                    <h3>OpenAI GPT-4o-mini</h3>
+                    <p>Identifies significant historical events and crafts detailed artistic prompts for image generation.</p>
+                </div>
+                <div class="api-card">
+                    <h3>OpenAI DALL-E 3</h3>
+                    <p>Generates high-quality, artistic images from text prompts with remarkable detail and creativity.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Created by <a href="https://github.com/anttirask">Antti Rask</a></p>
+            <div class="footer-links">
+                <a href="https://github.com/anttirask/gallery-of-the-day">GitHub</a>
+                <a href="https://youcanbeapirate.shinyapps.io/gallery-of-the-day/">Live App</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

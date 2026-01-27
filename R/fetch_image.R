@@ -191,12 +191,6 @@ if (is.null(response)) {
         make_dalle_request(alternative_prompt)
     }, error = function(e) {
         cat("Error making request:", conditionMessage(e), "\n")
-
-        log_message <- str_c(
-            now(), " - DALL-E request failed even with alternative event: ", conditionMessage(e)
-        )
-        write(log_message, file = "error_log.txt", append = TRUE)
-
         stop(e)
     })
 

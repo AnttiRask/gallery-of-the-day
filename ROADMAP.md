@@ -11,33 +11,11 @@ Future improvements for Gallery of the Day.
 - [x] Organize R scripts into `R/` folder
 - [x] Update README to modern format
 - [x] Migrate image storage to Cloudflare R2
+- [x] Migrate to Turso database (replaced CSV storage)
+- [x] Add DALL-E prompt retry with sanitization and alternative events
+- [x] Shiny App Makeover (bslib, Bootstrap 5, dark theme, mobile responsive)
 
 ## Planned
-
-### Lightweight Database
-
-Replace CSV storage with a proper database.
-
-**Options to consider:**
-- SQLite (simple, file-based)
-- Turso (SQLite on the edge)
-- Supabase (PostgreSQL, generous free tier)
-
-**Benefits:**
-- Better query performance
-- Proper date indexing
-- Easier to add metadata fields
-
-### Shiny App Makeover
-
-Modernize the UI/UX of the Shiny app.
-
-**Ideas:**
-- Use bslib for modern Bootstrap 5 styling
-- Add "About" and "About Me" tabs
-- Improve mobile responsiveness
-- Add image loading states
-- Consider dark mode support
 
 ### GitHub Pages
 

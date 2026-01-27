@@ -74,22 +74,10 @@ server <- function(input, output, session) {
         # If there's a matching image and caption, display them
         if (length(selected_info()$image) > 0 && length(selected_info()$prompt) > 0) {
 
-            tagList(
-
-                div(
-                    class = "title",
-                    h1("Gallery of the Day")
-                ),
-
-                br(),
-
-                img(
-                    src    = selected_info()$image,
-                    class  = "img-responsive",
-                    alt    = "Gallery image",
-                    height = "1024px",
-                    width  = "1024px"
-                )
+            img(
+                src   = selected_info()$image,
+                class = "gallery-image",
+                alt   = "Gallery image"
             )
 
         } else {
@@ -111,20 +99,10 @@ server <- function(input, output, session) {
         # Replace newline characters with HTML line breaks
         caption_with_breaks <- HTML(str_replace_all(selected_caption, "\n", "<br>"))
 
-        # If there's a matching image and caption, display them
         if (length(selected_info()$image) > 0 && length(selected_info()$prompt) > 0) {
-
-            tagList(
-                div(
-                    class = "caption",
-                    h5(caption_with_breaks)
-                )
-            )
-
+            p(caption_with_breaks)
         } else {
-
-            h5("No caption available for this date.")
-
+            p("No caption available for this date.")
         }
     })
 }

@@ -1,71 +1,65 @@
-/* Apply a background color and padding to the body to give space around the content */
-body {
-    background-color: #000;
+/* Gallery container - center content with max width */
+.gallery-container {
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 20px;
 }
 
-/* Fonts */
-h1 {
-    color: #C0C0C0;
-    font-family: Garamond, Times, serif;
-    font-size: 10vw;
-}
-
-h5 {
-    color: #C0C0C0;
-    font-family: Garamond, Times, serif;
-    font-size: 2vw;
-}
-
-/* Center the image on the page and add a frame */
-img {
+/* Image styling */
+.gallery-image {
     display: block;
-    margin-left: auto;
-    margin-right: auto;
-    width: 80%;                            /* Adjust this to control the image size */
-    border: 20px solid #C0C0C0;               /* Frame around the image */
-    border-radius: 5px;                       /* Optional: if you want rounded corners */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: for a slight shadow */
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    border: 12px solid #C0C0C0;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
-/* Class */
-.caption {
-    text-align: left;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.control-label {
-    color: #C1272D;
-    font-family: Garamond, Times, serif;
-    font-size: 1.5vw;
+/* Date picker container */
+.date-picker-container {
     text-align: center;
 }
 
-.date-input-container {
-  display: flex !important;
-  justify-content: center !important;
-  text-align: center !important;
-  margin-bottom: 20px !important;
+.date-picker-container .shiny-input-container {
+    display: inline-block;
 }
 
-.form-control{
-    font-family: Garamond, Times, serif;
-    font-size: 1.5vw;
-    text-align: center;
+.date-picker-container .control-label {
+    color: #C0C0C0 !important;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
 }
 
-.shiny-input-container label {
+.date-picker-container input {
     text-align: center;
-    width: 100%;
+    font-size: 1.1rem;
 }
 
-.title {
-    text-align: center;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    width: 100%;
+/* Caption styling */
+.caption-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .gallery-container {
+        padding: 10px;
+    }
+
+    .gallery-image {
+        border-width: 8px;
+    }
+
+    h1.display-3 {
+        font-size: 2.5rem;
+    }
+
+    .caption-container {
+        font-size: 1rem;
+        padding: 0 10px;
+    }
 }

@@ -239,14 +239,13 @@ put_result <- tryCatch({
         base_url = r2_endpoint,
         region   = ""
     )
+    TRUE  # put_object returns a structure on success, so explicitly return TRUE
 }, error = function(e) {
     cat("R2 upload error:", conditionMessage(e), "\n")
     FALSE
 })
 
-cat("Put result:", as.character(put_result), "\n")
-
-if (isTRUE(put_result)) {
+if (put_result) {
     cat("Image uploaded to R2:", object_key, "\n")
 } else {
     stop("Failed to upload image to R2")

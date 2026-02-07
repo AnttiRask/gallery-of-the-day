@@ -2,7 +2,7 @@
 
 AI-generated art gallery that creates a new image daily based on historical events.
 
-**[View Live App](https://youcanbeapirate.shinyapps.io/gallery-of-the-day/)** | **[Project Page](https://anttirask.github.io/gallery-of-the-day/)**
+**[View Live App](https://youcanbeapirate.shinyapps.io/gallery-of-the-day/)** | **[Project Page](https://youcanbeapirate.com/gallery-of-the-day/)**
 
 ![Gallery of the Day](img/gallery-of-the-day-example.png)
 
@@ -87,7 +87,7 @@ GitHub Actions runs daily at 4 AM UTC:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/youcanbeapirate/gallery-of-the-day.git
+   git clone https://github.com/AnttiRask/gallery-of-the-day.git
    cd gallery-of-the-day
    ```
 
@@ -127,6 +127,7 @@ Add these secrets to your repository:
 | `R2_ACCESS_KEY_ID` | Cloudflare R2 access key |
 | `R2_SECRET_ACCESS_KEY` | Cloudflare R2 secret key |
 | `R2_ACCOUNT_ID` | Cloudflare account ID |
+| `R2_BUCKET_NAME` | R2 bucket name |
 | `R2_PUBLIC_URL` | R2 public bucket URL |
 | `SHINY_APPS_NAME` | ShinyApps.io account name |
 | `SHINY_APPS_TOKEN` | ShinyApps.io token |

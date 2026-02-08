@@ -2,7 +2,7 @@
 
 AI-generated art gallery that creates a new image daily based on historical events.
 
-**[View Live App](https://youcanbeapirate.shinyapps.io/gallery-of-the-day/)** | **[Project Page](https://youcanbeapirate.com/gallery-of-the-day/)**
+**[View Live App](https://galleryoftheday.youcanbeapirate.com/)** | **[Project Page](https://youcanbeapirate.com/gallery-of-the-day/)**
 
 ![Gallery of the Day](img/gallery-of-the-day-example.png)
 
@@ -12,7 +12,7 @@ AI-generated art gallery that creates a new image daily based on historical even
 - Uses GPT-4o-mini to research and describe significant events
 - Creates images with DALL-E 3 based on those descriptions
 - Fully automated via GitHub Actions
-- Deployed to ShinyApps.io
+- Deployed to Google Cloud Run
 
 ## Tech Stack
 
@@ -24,7 +24,7 @@ AI-generated art gallery that creates a new image daily based on historical even
 | Database | Turso (libSQL) |
 | Image Storage | Cloudflare R2 |
 | Automation | GitHub Actions |
-| Hosting | ShinyApps.io |
+| Hosting | Google Cloud Run |
 | Package Management | renv |
 
 ## Project Structure
@@ -34,7 +34,6 @@ gallery-of-the-day/
 ├── R/                              # Automation scripts
 │   ├── create_prompt.R             # Generates historical event descriptions
 │   ├── fetch_image.R               # Creates and downloads DALL-E images
-│   ├── deploy_app.R                # Deploys to ShinyApps.io
 │   └── backfill.R                  # Backfill missing dates
 ├── app/                            # Shiny application
 │   ├── www/
@@ -47,6 +46,9 @@ gallery-of-the-day/
 │   └── index.html                  # Landing page
 ├── .github/workflows/
 │   └── r_scripts_daily.yml         # Daily automation workflow
+├── Dockerfile                      # Container image definition
+├── docker-compose.yml              # Local development setup
+├── deploy.sh                       # Google Cloud Run deployment
 ├── renv.lock                       # Package dependencies
 └── ROADMAP.md                      # Future improvements
 ```
@@ -63,57 +65,49 @@ Uses GPT-4o-mini to research a significant historical event for today's date:
 
 Sends the historical description to DALL-E 3 to generate a unique artwork. The image is saved with the date in the filename for easy lookup.
 
-### 3. App Deployment (`deploy_app.R`)
-
-Deploys the Shiny app to ShinyApps.io with the new content.
-
-### 4. Automation
+### 3. Automation
 
 GitHub Actions runs daily at 4 AM UTC:
+
 1. Generate prompt for today
 2. Create and fetch image
-3. Deploy updated app
-4. Commit new files to repository
+3. Commit new files to repository
 
 ## Local Development
 
 ### Prerequisites
 
-- R (>= 4.0)
-- RStudio (recommended)
-- OpenAI API key
+- [Docker](https://docs.docker.com/get-docker/)
+- R (>= 4.0) for running automation scripts outside Docker
 
 ### Setup
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/AnttiRask/gallery-of-the-day.git
    cd gallery-of-the-day
    ```
 
-2. Install dependencies:
-   ```r
-   renv::restore()
+2. Copy `.env.example` to `.env` and fill in your credentials:
+
+   ```bash
+   cp .env.example .env
    ```
 
-3. Create `secret.R` with your credentials:
-   ```r
-   OPENAI_API_KEY <- "your-openai-api-key"
-   SHINY_APPS_NAME <- "your-shinyapps-name"
-   SHINY_APPS_TOKEN <- "your-shinyapps-token"
-   SHINY_APPS_SECRET <- "your-shinyapps-secret"
+3. Build and run with Docker Compose:
+
+   ```bash
+   docker compose up --build
    ```
 
-4. Run the scripts:
-   ```r
-   source("R/create_prompt.R")
-   source("R/fetch_image.R")
-   ```
+4. Open <http://localhost:8083>
 
-5. Run the Shiny app locally:
-   ```r
-   shiny::runApp("app")
-   ```
+The `app/` directory is volume-mounted, so code changes are reflected without rebuilding.
+
+### Deployment
+
+See [DEPLOY.md](DEPLOY.md) for Google Cloud Run deployment instructions.
 
 ## GitHub Actions Setup
 
@@ -129,9 +123,6 @@ Add these secrets to your repository:
 | `R2_ACCOUNT_ID` | Cloudflare account ID |
 | `R2_BUCKET_NAME` | R2 bucket name |
 | `R2_PUBLIC_URL` | R2 public bucket URL |
-| `SHINY_APPS_NAME` | ShinyApps.io account name |
-| `SHINY_APPS_TOKEN` | ShinyApps.io token |
-| `SHINY_APPS_SECRET` | ShinyApps.io secret |
 
 ## Roadmap
 
@@ -141,6 +132,7 @@ See [ROADMAP.md](ROADMAP.md) for future ideas. Recent completions:
 - Turso database for prompts
 - Shiny app UI makeover (bslib, dark theme)
 - GitHub Pages landing page
+- Google Cloud Run deployment with custom domain
 
 ## License
 

@@ -15,6 +15,7 @@ Future improvements for Gallery of the Day.
 - [x] Add DALL-E prompt retry with sanitization and alternative events
 - [x] Shiny App Makeover (bslib, Bootstrap 5, dark theme, mobile responsive)
 - [x] GitHub Pages landing page
+- [x] Google Cloud Run deployment with custom domain (galleryoftheday.youcanbeapirate.com)
 
 ## Future Ideas
 

@@ -96,11 +96,14 @@ server <- function(input, output, session) {
         selected_caption <- selected_info()$prompt %>%
             clean_and_break_text()
 
-        # Replace newline characters with HTML line breaks
-        caption_with_breaks <- HTML(str_replace_all(selected_caption, "\n", "<br>"))
+        # Split on newlines and interleave with <br> tags
+        lines <- str_split(selected_caption, "\n")[[1]]
+        caption_elements <- lapply(lines, function(line) {
+            tagList(line, tags$br())
+        })
 
         if (length(selected_info()$image) > 0 && length(selected_info()$prompt) > 0) {
-            p(caption_with_breaks)
+            p(caption_elements)
         } else {
             p("No caption available for this date.")
         }

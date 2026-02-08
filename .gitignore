@@ -1,5 +1,6 @@
 # Secret
 secret.R
+.env
 
 # History files
 .Rhistory

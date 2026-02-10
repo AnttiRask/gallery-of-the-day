@@ -1,35 +1,27 @@
 # Gallery of the Day
 
-AI-generated art gallery that creates a new image daily based on historical events.
+Gallery of the Day is a web app that shows every day a new AI-created image inspired by something that happened that day in the history.
 
-**[View Live App](https://galleryoftheday.youcanbeapirate.com/)** | **[Project Page](https://youcanbeapirate.com/gallery-of-the-day/)**
+## 🔍 Features
+
+- 📅 Daily AI-generated images inspired by historical events
+- 📱 Mobile-optimized layout with adjusted UI
+- 🌙 Elegant dark interface designed for comfortable viewing
+- 📜 Uses GPT-4o-mini to research and describe significant events
+- 🎨 Creates images with DALL-E 3 based on those descriptions
+- 📦 Data updated daily via GitHub Actions and stored in Turso (libSQL) and Cloudflare R2
+
+## 📸 Screenshot
 
 ![Gallery of the Day](img/gallery-of-the-day-example.png)
 
-## Features
+## 🚀 Live App
 
-- Daily AI-generated images inspired by historical events
-- Uses GPT-4o-mini to research and describe significant events
-- Creates images with DALL-E 3 based on those descriptions
-- Fully automated via GitHub Actions
-- Deployed to Google Cloud Run
-
-## Tech Stack
-
-| Component | Technology |
-|-----------|------------|
-| Language | R |
-| Web Framework | Shiny + bslib |
-| AI Models | GPT-4o-mini, DALL-E 3 |
-| Database | Turso (libSQL) |
-| Image Storage | Cloudflare R2 |
-| Automation | GitHub Actions |
-| Hosting | Google Cloud Run |
-| Package Management | renv |
+[👉 Try it here!](https://galleryoftheday.youcanbeapirate.com/)
 
 ## Project Structure
 
-```
+```bash
 gallery-of-the-day/
 ├── R/                              # Automation scripts
 │   ├── create_prompt.R             # Generates historical event descriptions
@@ -52,6 +44,19 @@ gallery-of-the-day/
 ├── renv.lock                       # Package dependencies
 └── ROADMAP.md                      # Future improvements
 ```
+
+## Tech Stack
+
+| Component | Technology |
+| --------- | ---------- |
+| Language | R |
+| Web Framework | Shiny + bslib |
+| AI Models | GPT-4o-mini, DALL-E 3 |
+| Database | Turso (libSQL) |
+| Image Storage | Cloudflare R2 |
+| Automation | GitHub Actions |
+| Hosting | Google Cloud Run |
+| Package Management | renv |
 
 ## How It Works
 
@@ -114,15 +119,15 @@ See [DEPLOY.md](DEPLOY.md) for Google Cloud Run deployment instructions.
 Add these secrets to your repository:
 
 | Secret | Description |
-|--------|-------------|
+| ------ | ----------- |
 | `OPENAI_API_KEY` | Your OpenAI API key |
-| `TURSO_DATABASE_URL` | Turso database URL |
-| `TURSO_AUTH_TOKEN` | Turso authentication token |
 | `R2_ACCESS_KEY_ID` | Cloudflare R2 access key |
-| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 secret key |
 | `R2_ACCOUNT_ID` | Cloudflare account ID |
 | `R2_BUCKET_NAME` | R2 bucket name |
 | `R2_PUBLIC_URL` | R2 public bucket URL |
+| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 secret key |
+| `TURSO_AUTH_TOKEN` | Turso authentication token |
+| `TURSO_DATABASE_URL` | Turso database URL |
 
 ## Roadmap
 

@@ -44,6 +44,49 @@
     font-size: 1.1rem;
 }
 
+/* Footer styling */
+.app-footer {
+    border-top: 1px solid #333333;
+    margin-top: 3rem;
+    padding-top: 2rem;
+}
+
+.app-footer a {
+    color: #C1272D;
+    text-decoration: none;
+}
+
+.app-footer a:hover {
+    color: #a02025;
+    text-decoration: underline;
+}
+
+.app-footer .text-muted {
+    color: #808080 !important;
+}
+
+/* Accessibility - Keyboard Navigation */
+a:focus, button:focus, input:focus, select:focus {
+    outline: 2px solid #C1272D;
+    outline-offset: 2px;
+}
+
+/* Skip link for screen readers */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #000;
+    color: #fff;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 100;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
     .gallery-container {

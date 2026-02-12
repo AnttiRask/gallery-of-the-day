@@ -25,12 +25,15 @@ server <- function(input, output, session) {
 
     # Render the date input UI
     output$dateInput_ui <- renderUI({
-        dateInput(
-            "dateInput",
-            "Choose a Date",
-            value = max(available_dates()),
-            min   = min(available_dates()),
-            max   = max(available_dates())
+        div(
+            `aria-label` = "Date selection for gallery image",
+            dateInput(
+                "dateInput",
+                "Choose a Date",
+                value = max(available_dates()),
+                min   = min(available_dates()),
+                max   = max(available_dates())
+            )
         )
     })
 
@@ -74,10 +77,16 @@ server <- function(input, output, session) {
         # If there's a matching image and caption, display them
         if (length(selected_info()$image) > 0 && length(selected_info()$prompt) > 0) {
 
+            # Create descriptive alt text from prompt (first 150 chars)
+            alt_text <- substring(selected_info()$prompt, 1, 150)
+            if (nchar(selected_info()$prompt) > 150) {
+                alt_text <- paste0(alt_text, "...")
+            }
+
             img(
                 src   = selected_info()$image,
                 class = "gallery-image",
-                alt   = "Gallery image"
+                alt   = alt_text
             )
 
         } else {

@@ -55,6 +55,7 @@ gcloud run deploy "$SERVICE_NAME" \
     --image "$IMAGE" \
     --platform managed \
     --region "$REGION" \
+    --project "$PROJECT_ID" \
     --allow-unauthenticated \
     --memory 1Gi \
     --timeout 300

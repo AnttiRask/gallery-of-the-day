@@ -106,3 +106,90 @@ a:focus, button:focus, input:focus, select:focus {
         padding: 0 10px;
     }
 }
+
+/* Lightbox overlay */
+.lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.lightbox-overlay.lightbox-visible {
+    opacity: 1;
+}
+
+.lightbox-content {
+    position: relative;
+    max-width: 95vw;
+    max-height: 95vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox-image {
+    max-width: 100%;
+    max-height: 95vh;
+    width: auto;
+    height: auto;
+    border: 2px solid #C1272D;
+    border-radius: 4px;
+    box-shadow: 0 8px 48px rgba(193, 39, 45, 0.3);
+}
+
+.lightbox-close {
+    position: absolute;
+    top: -50px;
+    right: 0;
+    background: transparent;
+    border: none;
+    color: #C1272D;
+    font-size: 48px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 10px;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.lightbox-close:hover {
+    color: #a02025;
+}
+
+.lightbox-close:focus {
+    outline: 2px solid #C1272D;
+    outline-offset: 4px;
+}
+
+/* Make gallery image clickable */
+.gallery-image {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gallery-image:hover {
+    transform: scale(1.01);
+    box-shadow: 0 12px 40px rgba(193, 39, 45, 0.4);
+}
+
+/* Mobile responsiveness for lightbox */
+@media (max-width: 768px) {
+    .lightbox-close {
+        top: -40px;
+        right: -10px;
+        font-size: 40px;
+    }
+
+    .lightbox-image {
+        max-height: 90vh;
+    }
+}

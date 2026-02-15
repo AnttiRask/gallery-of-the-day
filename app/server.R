@@ -37,6 +37,18 @@ server <- function(input, output, session) {
         )
     })
 
+    # Send available dates to client for keyboard navigation
+    observe({
+        req(available_dates())
+        dates_to_send <- as.character(available_dates())
+        cat("Sending", length(dates_to_send), "dates to client\n")
+        cat("First date:", dates_to_send[1], "Last date:", dates_to_send[length(dates_to_send)], "\n")
+        session$sendCustomMessage(
+            type = "updateAvailableDates",
+            message = list(dates = dates_to_send)
+        )
+    })
+
     # Reactive expression for selected date
     selected_info <- reactive({
 

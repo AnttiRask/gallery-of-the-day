@@ -33,13 +33,28 @@ if (as.integer(existing$count[1]) > 0) {
 
 # The text prompt. Explore!
 date        <- today() %>% format("%B %d")
-prompt      <- str_glue("Could you provide a brief description of a significant historical event that happened on {date} in history? Please include key visual details such as the main figures involved, their clothing, the setting, and any notable objects or symbols. Emphasize elements that would be impactful in a visual representation, and describe the emotional tone or atmosphere of the event.
+prompt      <- str_glue("You must provide a vivid visual description of a historical event from {date} that is suitable for AI image generation.
 
-IMPORTANT: This description will be used to generate an AI image, so please:
-- Focus on peaceful, celebratory, or constructive moments in history
-- Avoid describing violence, weapons, battles, or conflict
-- If the most notable event involves conflict, find an alternative event or focus on a peaceful aspect (e.g., diplomacy, aftermath, memorial)
-- Emphasize artistic and symbolic elements over graphic details")
+REQUIREMENTS - You MUST choose from these categories ONLY:
+1. Scientific discoveries or technological breakthroughs
+2. Cultural celebrations, festivals, or traditions
+3. Artistic achievements (music premiers, art unveilings, literary milestones)
+4. Sports achievements or inaugural events
+5. Space exploration milestones
+6. Peaceful diplomatic achievements or treaty signings
+7. Architectural completions or inaugurations
+8. Conservation or humanitarian milestones
+
+STRICT PROHIBITIONS - NEVER describe:
+- Wars, battles, military conflicts, or violence of any kind
+- Weapons, armor, or military equipment
+- Tragedies, disasters, assassinations, or deaths
+- Political controversies or protests
+
+VISUAL DESCRIPTION FORMAT:
+Describe the scene with vivid details: the setting, the people involved (their clothing, expressions, poses), the atmosphere (lighting, weather, mood), and significant objects or symbols. Focus on creating a visually compelling, uplifting image that celebrates human achievement or cultural heritage.
+
+If no suitable peaceful event exists for {date}, choose an event from within 3 days of that date that meets these requirements.")
 
 # Max number of tokens used
 max_tokens  <- 4000
@@ -56,7 +71,7 @@ model       <- "gpt-4o-mini"
 url         <- "https://api.openai.com/v1/chat/completions"
 
 # System message to set the AI's role
-system_message <- "You are a historian providing vivid descriptions of historical events for artistic visualization."
+system_message <- "You are a cultural historian specializing in positive human achievements, scientific discoveries, and artistic milestones. You NEVER describe violence, conflict, or tragedy. Your role is to find the most visually compelling, uplifting historical moments suitable for beautiful AI-generated artwork."
 
 # Gather the arguments as the body of the request (Chat Completions format)
 body    <- list(

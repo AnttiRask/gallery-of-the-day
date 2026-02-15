@@ -41,8 +41,7 @@ gallery-of-the-day/
 ├── Dockerfile                      # Container image definition
 ├── docker-compose.yml              # Local development setup
 ├── deploy.sh                       # Google Cloud Run deployment
-├── renv.lock                       # Package dependencies
-└── ROADMAP.md                      # Future improvements
+└── renv.lock                       # Package dependencies
 ```
 
 ## Tech Stack
@@ -129,9 +128,7 @@ Add these secrets to your repository:
 | `TURSO_AUTH_TOKEN` | Turso authentication token |
 | `TURSO_DATABASE_URL` | Turso database URL |
 
-## Roadmap
-
-See [ROADMAP.md](ROADMAP.md) for future ideas. Recent completions:
+## Recent Completions
 
 - Cloudflare R2 image storage
 - Turso database for prompts

@@ -132,14 +132,15 @@ Provide a vivid visual description of this event including the setting, people i
 }
 
 # Function to generate image for a prompt
-# Returns NULL if DALL-E rejects the prompt (content policy)
+# Returns NULL if GPT Image 1.5 rejects the prompt (content policy)
+# Returns base64-encoded image data
 generate_image <- function(prompt_text) {
     body <- list(
         model   = "gpt-image-1.5",
         prompt  = prompt_text,
         n       = 1,
         size    = "1024x1024",
-        quality = "hd"
+        quality = "high"
     )
 
     tryCatch({
@@ -151,7 +152,7 @@ generate_image <- function(prompt_text) {
 
         response %>%
             resp_body_json() %>%
-            pluck("data", 1, "url")
+            pluck("data", 1, "b64_json")
     }, error = function(e) {
         cat("  DALL-E error:", conditionMessage(e), "\n")
         NULL
@@ -159,12 +160,13 @@ generate_image <- function(prompt_text) {
 }
 
 # Try to generate image, sanitize and retry if rejected, then try alternative event
+# Returns a list with 'image' (base64 data) and 'prompt' (the prompt that worked)
 generate_image_with_retry <- function(prompt_text, target_date) {
     # First attempt
     image_url <- generate_image(prompt_text)
 
     if (!is.null(image_url)) {
-        return(image_url)
+        return(list(image = image_url, prompt = prompt_text, changed = FALSE))
     }
 
     # If rejected, sanitize and retry
@@ -175,7 +177,7 @@ generate_image_with_retry <- function(prompt_text, target_date) {
     image_url <- generate_image(sanitized)
 
     if (!is.null(image_url)) {
-        return(image_url)
+        return(list(image = image_url, prompt = sanitized, changed = TRUE))
     }
 
     # If still rejected, try completely different event
@@ -183,7 +185,13 @@ generate_image_with_retry <- function(prompt_text, target_date) {
     alternative <- get_alternative_event(target_date)
     Sys.sleep(2)
 
-    generate_image(alternative)
+    image_result <- generate_image(alternative)
+
+    if (!is.null(image_result)) {
+        return(list(image = image_result, prompt = alternative, changed = TRUE))
+    } else {
+        return(NULL)
+    }
 }
 
 # Process each date
@@ -237,16 +245,26 @@ for (target_date in dates) {
         cat("  Image already exists in R2\n")
     } else {
         cat("  Generating image with GPT Image 1.5...\n")
-        image_url <- generate_image_with_retry(prompt_text, target_date)
+        result <- generate_image_with_retry(prompt_text, target_date)
 
-        if (is.null(image_url)) {
-            cat("  SKIPPING: DALL-E rejected this prompt (content policy)\n")
+        if (is.null(result)) {
+            cat("  SKIPPING: GPT Image rejected this prompt (content policy)\n")
             next
         }
 
-        # Download to temp file
+        # Update Turso if we had to use a different prompt
+        if (result$changed) {
+            cat("  Updating prompt in Turso with successful version...\n")
+            turso_execute(
+                "UPDATE prompts SET text = ? WHERE date = ?",
+                list(result$prompt, date_str)
+            )
+        }
+
+        # Decode base64 to temp file
         temp_file <- tempfile(fileext = ".png")
-        curl_download(image_url, temp_file, mode = "wb")
+        img_binary <- jsonlite::base64_dec(result$image)
+        writeBin(img_binary, temp_file)
 
         # Upload to R2
         cat("  Uploading to R2...\n")
@@ -264,6 +282,7 @@ for (target_date in dates) {
                 base_url = r2_endpoint,
                 region   = ""
             )
+            TRUE  # put_object returns a structure on success, so explicitly return TRUE
         }, error = function(e) {
             cat("  R2 upload error:", conditionMessage(e), "\n")
             FALSE

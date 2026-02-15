@@ -125,7 +125,7 @@ n       <- 1
 size    <- "1024x1024"
 
 # Image quality
-quality <- "hd"
+quality <- "high"
 
 ## Create the request ----
 
@@ -209,19 +209,18 @@ if (prompt_was_changed) {
 
 cat("Response status:", response$status_code, "\n")
 
-# Save the image URL ----
-url_img <- response %>%
+# Decode base64 image ----
+b64_json <- response %>%
     resp_body_json() %>%
-    pluck("data", 1, "url")
+    pluck("data", 1, "b64_json")
 
-cat("Got image URL, downloading...\n")
+cat("Got base64 image, decoding...\n")
 
-# Download and upload to R2 ----
-
-# Download to temp file first
+# Decode base64 to binary and save to temp file
 temp_file <- tempfile(fileext = ".png")
-curl_download(url_img, temp_file, mode = "wb")
-cat("Image downloaded to temp file\n")
+img_binary <- jsonlite::base64_dec(b64_json)
+writeBin(img_binary, temp_file)
+cat("Image decoded and saved to temp file\n")
 
 # Upload to Cloudflare R2
 cat("Uploading to R2...\n")

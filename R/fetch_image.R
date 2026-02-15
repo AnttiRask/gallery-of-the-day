@@ -55,7 +55,7 @@ if (image_exists) {
 ## Insert the arguments ----
 
 # Model
-model   <- "dall-e-3"
+model   <- "gpt-image-1.5"
 
 # The text prompt (from Turso database)
 prompt_result <- turso_query("SELECT text FROM prompts ORDER BY date DESC LIMIT 1")
@@ -125,7 +125,7 @@ n       <- 1
 size    <- "1024x1024"
 
 # Image quality
-quality <- "standard"
+quality <- "hd"
 
 ## Create the request ----
 
@@ -150,7 +150,7 @@ make_dalle_request <- function(prompt_text) {
 }
 
 # Make the request with retry logic
-cat("Making DALL-E 3 request...\n")
+cat("Making GPT Image 1.5 request...\n")
 
 used_prompt <- prompt  # Track which prompt was actually used
 prompt_was_changed <- FALSE

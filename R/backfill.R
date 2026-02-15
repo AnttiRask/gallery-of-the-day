@@ -5,7 +5,7 @@
 # 1. For each date in the range, check if prompt exists in Turso
 # 2. If not, generate prompt using GPT-4o-mini and save to Turso
 # 3. Check if image exists in R2
-# 4. If not, generate image using DALL-E 3 and upload to R2
+# 4. If not, generate image using GPT Image 1.5 and upload to R2
 
 # Get credentials from environment variables (GitHub Actions) or secret.R (local)
 OPENAI_API_KEY <- Sys.getenv("OPENAI_API_KEY")
@@ -135,11 +135,11 @@ Provide a vivid visual description of this event including the setting, people i
 # Returns NULL if DALL-E rejects the prompt (content policy)
 generate_image <- function(prompt_text) {
     body <- list(
-        model   = "dall-e-3",
+        model   = "gpt-image-1.5",
         prompt  = prompt_text,
         n       = 1,
         size    = "1024x1024",
-        quality = "standard"
+        quality = "hd"
     )
 
     tryCatch({
@@ -236,7 +236,7 @@ for (target_date in dates) {
     if (isTRUE(image_exists)) {
         cat("  Image already exists in R2\n")
     } else {
-        cat("  Generating image with DALL-E 3...\n")
+        cat("  Generating image with GPT Image 1.5...\n")
         image_url <- generate_image_with_retry(prompt_text, target_date)
 
         if (is.null(image_url)) {

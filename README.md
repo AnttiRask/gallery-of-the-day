@@ -8,7 +8,7 @@ Gallery of the Day is a web app that shows every day a new AI-created image insp
 - 📱 Mobile-optimized layout with adjusted UI
 - 🌙 Elegant dark interface designed for comfortable viewing
 - 📜 Uses GPT-4o-mini to research and describe significant events
-- 🎨 Creates images with DALL-E 3 based on those descriptions
+- 🎨 Creates images with GPT Image 1.5 based on those descriptions
 - 📦 Data updated daily via GitHub Actions and stored in Turso (libSQL) and Cloudflare R2
 
 ## 📸 Screenshot
@@ -50,7 +50,7 @@ gallery-of-the-day/
 | --------- | ---------- |
 | Language | R |
 | Web Framework | Shiny + bslib |
-| AI Models | GPT-4o-mini, DALL-E 3 |
+| AI Models | GPT-4o-mini, GPT Image 1.5 |
 | Database | Turso (libSQL) |
 | Image Storage | Cloudflare R2 |
 | Automation | GitHub Actions |

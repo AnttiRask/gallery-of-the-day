@@ -5,10 +5,12 @@ Gallery of the Day is a web app that shows every day a new AI-created image insp
 ## 🔍 Features
 
 - 📅 Daily AI-generated images inspired by historical events
+- 🖼️ Full-screen lightbox mode for immersive image viewing
+- ⌨️ Keyboard navigation with arrow keys to browse between dates
 - 📱 Mobile-optimized layout with adjusted UI
 - 🌙 Elegant dark interface designed for comfortable viewing
-- 📜 Uses GPT-4o-mini to research and describe significant events
-- 🎨 Creates images with GPT Image 1.5 based on those descriptions
+- 📜 Uses GPT-4o-mini to research and describe significant events (focusing on positive achievements)
+- 🎨 Creates images with GPT Image 1.5 HD quality based on those descriptions
 - 📦 Data updated daily via GitHub Actions and stored in Turso (libSQL) and Cloudflare R2
 
 ## 📸 Screenshot
@@ -61,13 +63,17 @@ gallery-of-the-day/
 
 ### 1. Prompt Generation (`create_prompt.R`)
 
-Uses GPT-4o-mini to research a significant historical event for today's date:
+Uses GPT-4o-mini to research a positive historical event for today's date, with directive prompts that emphasize:
 
-> "Could you provide a brief description of a significant historical event that happened on {date} in history? Please include key visual details such as the main figures involved, their clothing, the setting, and any notable objects or symbols."
+- **Required categories**: Scientific discoveries, cultural celebrations, artistic achievements, sports, space exploration, peaceful diplomacy, architecture, conservation
+- **Strict prohibitions**: Wars, battles, violence, weapons, tragedies, political controversies
+- **Visual focus**: Vivid descriptions of settings, people, atmosphere, and symbols suitable for AI image generation
+
+This ensures diverse, uplifting content that celebrates human achievement rather than conflict.
 
 ### 2. Image Generation (`fetch_image.R`)
 
-Sends the historical description to DALL-E 3 to generate a unique artwork. The image is saved with the date in the filename for easy lookup.
+Sends the historical description to GPT Image 1.5 to generate a unique HD-quality artwork. The image is saved with the date in the filename for easy lookup.
 
 ### 3. Automation
 
@@ -130,11 +136,11 @@ Add these secrets to your repository:
 
 ## Recent Completions
 
-- Cloudflare R2 image storage
-- Turso database for prompts
-- Shiny app UI makeover (bslib, dark theme)
-- GitHub Pages landing page
-- Google Cloud Run deployment with custom domain
+- ✅ UX improvements: lightbox mode, keyboard navigation, page title, diverse events (Feb 2026)
+- ✅ GPT Image 1.5 upgrade with HD quality (Feb 2026)
+- ✅ Google Cloud Run deployment with custom domain (Jan 2026)
+- ✅ Shiny app UI makeover with bslib and dark theme (Jan 2026)
+- ✅ Turso database for prompts and Cloudflare R2 for image storage (Jan 2026)
 
 ## License
 

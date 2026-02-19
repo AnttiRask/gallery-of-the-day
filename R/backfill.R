@@ -53,12 +53,35 @@ r2_endpoint <- str_glue("{R2_ACCOUNT_ID}.r2.cloudflarestorage.com")
 generate_prompt <- function(target_date) {
     date_str <- format(target_date, "%B %d")
 
-    prompt <- str_glue("Could you provide a brief description of a significant historical event that happened on {date_str} in history? Please include key visual details such as the main figures involved, their clothing, the setting, and any notable objects or symbols. Emphasize elements that would be impactful in a visual representation, and describe the emotional tone or atmosphere of the event.")
+    prompt <- str_glue("You must provide a vivid visual description of a historical event from {date_str} that is suitable for AI image generation.
+
+REQUIREMENTS - You MUST choose from these categories ONLY:
+1. Scientific discoveries or technological breakthroughs
+2. Cultural celebrations, festivals, or traditions
+3. Artistic achievements (music premiers, art unveilings, literary milestones)
+4. Sports achievements or inaugural events
+5. Space exploration milestones
+6. Peaceful diplomatic achievements or treaty signings
+7. Architectural completions or inaugurations
+8. Conservation or humanitarian milestones
+
+STRICT PROHIBITIONS - NEVER describe:
+- Wars, battles, military conflicts, or violence of any kind
+- Weapons, armor, or military equipment
+- Tragedies, disasters, assassinations, or deaths
+- Political controversies or protests
+
+VISUAL DESCRIPTION FORMAT:
+Describe the scene with vivid details: the setting, the people involved (their clothing, expressions, poses), the atmosphere (lighting, weather, mood), and significant objects or symbols. Focus on creating a visually compelling, uplifting image that celebrates human achievement or cultural heritage.
+
+You MUST select an event from exactly {date_str}. If no event perfectly matches all categories above, choose the most positive and visually compelling event that occurred on this exact date in any year throughout history.")
+
+    system_message <- "You are a cultural historian specializing in positive human achievements, scientific discoveries, and artistic milestones. You NEVER describe violence, conflict, or tragedy. Your role is to find the most visually compelling, uplifting historical moments suitable for beautiful AI-generated artwork."
 
     body <- list(
         model       = "gpt-4o-mini",
         messages    = list(
-            list(role = "system", content = "You are a historian providing vivid descriptions of historical events for artistic visualization."),
+            list(role = "system", content = system_message),
             list(role = "user", content = prompt)
         ),
         temperature = 0.7,

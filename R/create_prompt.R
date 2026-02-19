@@ -54,7 +54,7 @@ STRICT PROHIBITIONS - NEVER describe:
 VISUAL DESCRIPTION FORMAT:
 Describe the scene with vivid details: the setting, the people involved (their clothing, expressions, poses), the atmosphere (lighting, weather, mood), and significant objects or symbols. Focus on creating a visually compelling, uplifting image that celebrates human achievement or cultural heritage.
 
-If no suitable peaceful event exists for {date}, choose an event from within 3 days of that date that meets these requirements.")
+You MUST select an event from exactly {date}. If no event perfectly matches all categories above, choose the most positive and visually compelling event that occurred on this exact date in any year throughout history.")
 
 # Max number of tokens used
 max_tokens  <- 4000

@@ -89,6 +89,11 @@ cat("Making GPT-4o-mini request...\n")
 response <- request(url) %>%
     req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
     req_body_json(body) %>%
+    req_retry(
+        max_tries    = 5,
+        backoff      = ~ 30,
+        is_transient = ~ resp_status(.x) %in% c(429, 500, 502, 503)
+    ) %>%
     req_perform()
 
 # Check the request was successful (status code should be 200) ----

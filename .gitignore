@@ -49,3 +49,6 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Local diagnostic exports (OpenAI usage CSVs etc.)
+diagnosis/

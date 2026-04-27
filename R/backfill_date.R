@@ -87,6 +87,11 @@ You MUST select an event from exactly {date_label}. If no event perfectly matche
     response <- request("https://api.openai.com/v1/chat/completions") %>%
         req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
         req_body_json(body) %>%
+        req_retry(
+            max_tries    = 5,
+            backoff      = ~ 30,
+            is_transient = ~ resp_status(.x) %in% c(429, 500, 502, 503)
+        ) %>%
         req_perform()
 
     prompt_text <- response %>%
@@ -145,6 +150,11 @@ sanitize_prompt <- function(original_prompt) {
     request("https://api.openai.com/v1/chat/completions") %>%
         req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
         req_body_json(body) %>%
+        req_retry(
+            max_tries    = 5,
+            backoff      = ~ 30,
+            is_transient = ~ resp_status(.x) %in% c(429, 500, 502, 503)
+        ) %>%
         req_perform() %>%
         resp_body_json() %>%
         pluck("choices", 1, "message", "content") %>%
@@ -171,6 +181,11 @@ Provide a vivid visual description of this event including the setting, people i
     request("https://api.openai.com/v1/chat/completions") %>%
         req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
         req_body_json(body) %>%
+        req_retry(
+            max_tries    = 5,
+            backoff      = ~ 30,
+            is_transient = ~ resp_status(.x) %in% c(429, 500, 502, 503)
+        ) %>%
         req_perform() %>%
         resp_body_json() %>%
         pluck("choices", 1, "message", "content") %>%

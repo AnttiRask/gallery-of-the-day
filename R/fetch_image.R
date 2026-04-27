@@ -79,6 +79,11 @@ sanitize_prompt <- function(original_prompt) {
     response <- request("https://api.openai.com/v1/chat/completions") %>%
         req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
         req_body_json(body) %>%
+        req_retry(
+            max_tries    = 5,
+            backoff      = ~ 30,
+            is_transient = ~ resp_status(.x) %in% c(429, 500, 502, 503)
+        ) %>%
         req_perform()
 
     response %>%
@@ -110,6 +115,11 @@ Provide a vivid visual description of this event including the setting, people i
     response <- request("https://api.openai.com/v1/chat/completions") %>%
         req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
         req_body_json(body) %>%
+        req_retry(
+            max_tries    = 5,
+            backoff      = ~ 30,
+            is_transient = ~ resp_status(.x) %in% c(429, 500, 502, 503)
+        ) %>%
         req_perform()
 
     response %>%

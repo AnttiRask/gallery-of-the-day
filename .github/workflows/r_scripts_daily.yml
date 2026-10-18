@@ -5,6 +5,11 @@ on:
     - cron: '0 4 * * *'  # Runs at 4 AM UTC daily
   workflow_dispatch: # Allows you to manually trigger the workflow
 
+# Never run next to a backfill (both write to the same database and bucket)
+concurrency:
+  group: gallery-data
+  cancel-in-progress: false
+
 jobs:
   run-scripts:
     runs-on: ubuntu-latest

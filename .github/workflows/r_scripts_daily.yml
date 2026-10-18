@@ -9,7 +9,9 @@ jobs:
   run-scripts:
     runs-on: ubuntu-latest
 
-    permissions: write-all
+    permissions:
+      contents: read
+      actions: write  # lets the last step re-enable this workflow (see "Keep workflow alive")
 
     steps:
     - name: Check out repository
@@ -48,3 +50,12 @@ jobs:
       timeout-minutes: 20
       run: Rscript R/fetch_image.R
       working-directory: ${{ github.workspace }}
+
+    # GitHub disables scheduled workflows after 60 days without repo activity, and
+    # this job never commits. Re-enabling the workflow through the API on every run
+    # keeps the schedule alive (it stopped on 2026-06-27 for this reason).
+    - name: Keep workflow alive
+      if: always()
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh workflow enable "${{ github.workflow }}" --repo "${{ github.repository }}"

@@ -58,4 +58,4 @@ jobs:
       if: always()
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh workflow enable "${{ github.workflow }}" --repo "${{ github.repository }}"
+      run: gh workflow enable r_scripts_daily.yml --repo "${{ github.repository }}"

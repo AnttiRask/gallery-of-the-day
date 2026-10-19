@@ -10,8 +10,10 @@ R2_ACCESS_KEY_ID     <- Sys.getenv("R2_ACCESS_KEY_ID")
 R2_SECRET_ACCESS_KEY <- Sys.getenv("R2_SECRET_ACCESS_KEY")
 R2_BUCKET_NAME       <- Sys.getenv("R2_BUCKET_NAME")
 
-# Load Turso helper functions
+# Load Turso helper functions and the shared settings and OpenAI helpers
 source("R/turso.R")
+source("R/config.R")
+source("R/openai.R")
 
 # Load packages ----
 library(conflicted)
@@ -50,187 +52,39 @@ if (image_exists) {
     quit(save = "no", status = 0)
 }
 
-# Create the API POST request ----
+# The text prompt for this date (from Turso database) ----
+prompt_result <- turso_query(
+    "SELECT text FROM prompts WHERE date = ?",
+    list(as.character(image_date))
+)
 
-## Insert the arguments ----
+if (nrow(prompt_result) == 0 || is.na(prompt_result$text[1]) || prompt_result$text[1] == "") {
+    stop("There is no prompt for ", image_date, " in Turso. Run R/create_prompt.R first.")
+}
 
-# Model
-model   <- "gpt-image-1.5"
-
-# The text prompt (from Turso database)
-prompt_result <- turso_query("SELECT text FROM prompts ORDER BY date DESC LIMIT 1")
 prompt <- prompt_result$text[1]
 
 cat("Prompt length:", nchar(prompt), "characters\n")
 
-# Function to sanitize a prompt that was rejected by DALL-E
-sanitize_prompt <- function(original_prompt) {
-    cat("Sanitizing prompt for DALL-E...\n")
-    body <- list(
-        model       = "gpt-4o-mini",
-        messages    = list(
-            list(role = "system", content = "You are an expert at rewriting historical event descriptions to be suitable for AI image generation. Rewrite the prompt to focus on peaceful, artistic, and symbolic elements while avoiding any violence, conflict, weapons, or controversial imagery. Keep the historical context but make it safe for image generation."),
-            list(role = "user", content = str_glue("Please rewrite this historical event description to be suitable for DALL-E image generation (avoid violence, weapons, conflict):\n\n{original_prompt}"))
-        ),
-        temperature = 0.7,
-        max_tokens  = 2000
-    )
+# Create the image (the model and its settings live in R/config.R). If the
+# safety system blocks the prompt, a rewritten and then a different event is tried.
+cat("Making", openai_image_model, "request...\n")
 
-    response <- request("https://api.openai.com/v1/chat/completions") %>%
-        req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
-        req_body_json(body) %>%
-        req_retry(
-            max_tries    = 5,
-            backoff      = ~ 30,
-            is_transient = ~ resp_status(.x) %in% c(429, 500, 502, 503)
-        ) %>%
-        req_perform()
-
-    response %>%
-        resp_body_json() %>%
-        pluck("choices", 1, "message", "content") %>%
-        str_remove_all("\\\n")
-}
-
-# Function to get an alternative event for a date when the original is too problematic
-get_alternative_event <- function(target_date) {
-    date_str <- format(target_date, "%B %d")
-    cat("Requesting alternative event for", date_str, "...\n")
-
-    body <- list(
-        model       = "gpt-4o-mini",
-        messages    = list(
-            list(role = "system", content = "You are a historian who specializes in finding positive, uplifting historical events suitable for artistic visualization."),
-            list(role = "user", content = str_glue("I need a DIFFERENT historical event for {date_str} that is suitable for AI image generation. Please choose an event that is:
-- Peaceful, celebratory, or scientifically/culturally significant
-- NOT related to wars, conflicts, tragedies, or controversial topics
-- Visually interesting (art, science discoveries, cultural celebrations, sports achievements, space exploration, etc.)
-
-Provide a vivid visual description of this event including the setting, people involved, their clothing, and the atmosphere. Focus on elements that would make a beautiful, uplifting image."))
-        ),
-        temperature = 0.9,
-        max_tokens  = 2000
-    )
-
-    response <- request("https://api.openai.com/v1/chat/completions") %>%
-        req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
-        req_body_json(body) %>%
-        req_retry(
-            max_tries    = 5,
-            backoff      = ~ 30,
-            is_transient = ~ resp_status(.x) %in% c(429, 500, 502, 503)
-        ) %>%
-        req_perform()
-
-    response %>%
-        resp_body_json() %>%
-        pluck("choices", 1, "message", "content") %>%
-        str_remove_all("\\\n")
-}
-
-# The number of images
-n       <- 1
-
-# Image size
-size    <- "1024x1024"
-
-# Image quality
-quality <- "high"
-
-## Create the request ----
-
-# The URL for this particular use case (see documentation for others)
-url <- "https://api.openai.com/v1/images/generations"
-
-# Function to make DALL-E request
-make_dalle_request <- function(prompt_text) {
-    body <- list(
-        model   = model,
-        prompt  = prompt_text,
-        n       = n,
-        size    = size,
-        quality = quality
-    )
-
-    request(url) %>%
-        req_headers(Authorization = str_glue("Bearer {OPENAI_API_KEY}")) %>%
-        req_body_json(body) %>%
-        req_retry(max_tries = 3, backoff = ~ 60) %>%
-        req_perform()
-}
-
-# Make the request with retry logic
-cat("Making GPT Image 1.5 request...\n")
-
-used_prompt <- prompt  # Track which prompt was actually used
-prompt_was_changed <- FALSE
-
-response <- tryCatch({
-    make_dalle_request(prompt)
-}, error = function(e) {
-    cat("DALL-E error (will retry with sanitized prompt):", conditionMessage(e), "\n")
-    NULL
-})
-
-# If first attempt failed, try with sanitized prompt
-if (is.null(response)) {
-    sanitized_prompt <- sanitize_prompt(prompt)
-    cat("Retrying with sanitized prompt...\n")
-    cat("Sanitized prompt length:", nchar(sanitized_prompt), "characters\n")
-
-    response <- tryCatch({
-        make_dalle_request(sanitized_prompt)
-    }, error = function(e) {
-        cat("Sanitized prompt also rejected:", conditionMessage(e), "\n")
-        NULL
-    })
-
-    if (!is.null(response)) {
-        used_prompt <- sanitized_prompt
-        prompt_was_changed <- TRUE
-    }
-}
-
-# If sanitized prompt also failed, try with completely different event
-if (is.null(response)) {
-    alternative_prompt <- get_alternative_event(image_date)
-    cat("Retrying with alternative event...\n")
-    cat("Alternative prompt length:", nchar(alternative_prompt), "characters\n")
-
-    response <- tryCatch({
-        make_dalle_request(alternative_prompt)
-    }, error = function(e) {
-        cat("Error making request:", conditionMessage(e), "\n")
-        stop(e)
-    })
-
-    used_prompt <- alternative_prompt
-    prompt_was_changed <- TRUE
-}
+result <- generate_image_with_fallbacks(prompt, image_date)
 
 # Update the prompt in Turso if we had to use a different one
-if (prompt_was_changed) {
+if (result$changed) {
     cat("Updating prompt in Turso with the successful version...\n")
     turso_execute(
         "UPDATE prompts SET text = ? WHERE date = ?",
-        list(used_prompt, as.character(image_date))
+        list(result$caption, as.character(image_date))
     )
 }
 
-cat("Response status:", response$status_code, "\n")
-
-# Decode base64 image ----
-b64_json <- response %>%
-    resp_body_json() %>%
-    pluck("data", 1, "b64_json")
-
-cat("Got base64 image, decoding...\n")
-
-# Decode base64 to binary and save to temp file
+# Save the image to a temp file
 temp_file <- tempfile(fileext = ".png")
-img_binary <- jsonlite::base64_dec(b64_json)
-writeBin(img_binary, temp_file)
-cat("Image decoded and saved to temp file\n")
+writeBin(result$image, temp_file)
+cat("Image saved to temp file\n")
 
 # Upload to Cloudflare R2
 cat("Uploading to R2...\n")

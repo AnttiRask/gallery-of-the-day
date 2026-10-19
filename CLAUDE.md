@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Gallery of the Day is an R/Shiny web app that displays daily AI-generated images inspired by historical events. Each day, GPT-4o-mini researches a positive historical event and GPT Image 1.5 creates an HD image based on that description.
+Gallery of the Day is an R/Shiny web app that displays daily AI-generated images inspired by historical events. Each day, GPT-5.6 Luna researches a positive historical event and GPT Image 2.5 Sunburst creates a high-quality image based on that description. (The models are set in `R/config.R`; days before 2026-10-19 used GPT-4o-mini and GPT Image 1.5.)
 
 ## Development Commands
 
@@ -27,8 +27,9 @@ R -e "renv::restore()"
 ## Architecture
 
 ### Data Flow
-1. **Prompt Generation** (`R/create_prompt.R`): GPT-4o-mini generates historical event descriptions, stored in Turso (libSQL database)
-2. **Image Generation** (`R/fetch_image.R`): GPT Image 1.5 creates images, uploaded to Cloudflare R2
+1. **Prompt Generation** (`R/create_prompt.R`): GPT-5.6 Luna generates historical event descriptions (JSON output, stored as plain text in Turso, a libSQL database)
+2. **Image Generation** (`R/fetch_image.R`): GPT Image 2.5 Sunburst creates images, uploaded to Cloudflare R2
+3. **Shared code**: `R/config.R` (models, prompts) and `R/openai.R` (API calls, retries, fallbacks) are used by `create_prompt.R`, `fetch_image.R` and `backfill_date.R`; tests are in `tests/testthat/`
 3. **Display** (`app/`): Shiny app fetches prompts from Turso and images from R2
 
 ### Key Components
@@ -64,4 +65,4 @@ The prompt generation strictly focuses on positive historical events:
 - Scientific discoveries, cultural celebrations, artistic achievements, sports, space exploration
 - Explicitly excludes wars, battles, violence, weapons, tragedies, political controversies
 
-If DALL-E rejects a prompt, `fetch_image.R` automatically sanitizes it or requests an alternative event.
+If the image API's safety system blocks a prompt (`moderation_blocked`), `fetch_image.R` rewrites it (also removing brand names and trademarked characters) or requests an alternative event. Other API errors, such as an empty OpenAI balance or an invalid key, stop the run with OpenAI's own message.

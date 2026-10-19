@@ -9,8 +9,8 @@ Gallery of the Day is a web app that shows every day a new AI-created image insp
 - ⌨️ Keyboard navigation with arrow keys to browse between dates
 - 📱 Mobile-optimized layout with adjusted UI
 - 🌙 Elegant dark interface designed for comfortable viewing
-- 📜 Uses GPT-4o-mini to research and describe significant events (focusing on positive achievements)
-- 🎨 Creates images with GPT Image 1.5 HD quality based on those descriptions
+- 📜 Uses GPT-5.6 Luna to research and describe significant events (focusing on positive achievements)
+- 🎨 Creates images with GPT Image 2.5 Sunburst in high quality based on those descriptions
 - 📦 Data updated daily via GitHub Actions and stored in Turso (libSQL) and Cloudflare R2
 
 ## 📸 Screenshot
@@ -27,7 +27,9 @@ Gallery of the Day is a web app that shows every day a new AI-created image insp
 gallery-of-the-day/
 ├── R/                              # Automation scripts
 │   ├── create_prompt.R             # Generates historical event descriptions
-│   ├── fetch_image.R               # Creates and downloads DALL-E images
+│   ├── fetch_image.R               # Creates and uploads the day's image
+│   ├── config.R                    # Models and prompts
+│   ├── openai.R                    # OpenAI calls (retries, safety fallbacks)
 │   └── backfill.R                  # Backfill missing dates
 ├── app/                            # Shiny application
 │   ├── www/
@@ -52,7 +54,7 @@ gallery-of-the-day/
 | --------- | ---------- |
 | Language | R |
 | Web Framework | Shiny + bslib |
-| AI Models | GPT-4o-mini, GPT Image 1.5 |
+| AI Models | GPT-5.6 Luna, GPT Image 2.5 Sunburst |
 | Database | Turso (libSQL) |
 | Image Storage | Cloudflare R2 |
 | Automation | GitHub Actions |
@@ -63,7 +65,7 @@ gallery-of-the-day/
 
 ### 1. Prompt Generation (`create_prompt.R`)
 
-Uses GPT-4o-mini to research a positive historical event for today's date, with directive prompts that emphasize:
+Uses GPT-5.6 Luna to research a positive historical event for today's date, with directive prompts that emphasize:
 
 - **Required categories**: Scientific discoveries, cultural celebrations, artistic achievements, sports, space exploration, peaceful diplomacy, architecture, conservation
 - **Strict prohibitions**: Wars, battles, violence, weapons, tragedies, political controversies
@@ -73,7 +75,7 @@ This ensures diverse, uplifting content that celebrates human achievement rather
 
 ### 2. Image Generation (`fetch_image.R`)
 
-Sends the historical description to GPT Image 1.5 to generate a unique HD-quality artwork. The image is saved with the date in the filename for easy lookup.
+Sends the historical description to GPT Image 2.5 Sunburst to generate a unique high-quality artwork. The image is saved with the date in the filename for easy lookup.
 
 ### 3. Automation
 
@@ -138,6 +140,7 @@ Add these secrets to your repository:
 
 - ✅ UX improvements: lightbox mode, keyboard navigation, page title, diverse events (Feb 2026)
 - ✅ GPT Image 1.5 upgrade with HD quality (Feb 2026)
+- ✅ GPT-5.6 Luna and GPT Image 2.5 Sunburst, structured JSON output, safety fallbacks and tests (Oct 2026)
 - ✅ Google Cloud Run deployment with custom domain (Jan 2026)
 - ✅ Shiny app UI makeover with bslib and dark theme (Jan 2026)
 - ✅ Turso database for prompts and Cloudflare R2 for image storage (Jan 2026)

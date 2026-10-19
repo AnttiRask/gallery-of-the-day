@@ -9,7 +9,7 @@ Gallery of the Day is a web app that shows every day a new AI-created image insp
 - ⌨️ Keyboard navigation with arrow keys to browse between dates
 - 📱 Mobile-optimized layout with adjusted UI
 - 🌙 Elegant dark interface designed for comfortable viewing
-- 📜 Uses GPT-5.6 Luna to research and describe significant events (focusing on positive achievements)
+- 📜 Uses GPT-5.6 Luna to choose and describe a significant event from Wikipedia's "On this day" list (focusing on positive achievements), so dates and years are real
 - 🎨 Creates images with GPT Image 2.5 Sunburst in high quality based on those descriptions
 - 📦 Data updated daily via GitHub Actions and stored in Turso (libSQL) and Cloudflare R2
 
@@ -30,6 +30,7 @@ gallery-of-the-day/
 │   ├── fetch_image.R               # Creates and uploads the day's image
 │   ├── config.R                    # Models and prompts
 │   ├── openai.R                    # OpenAI calls (retries, safety fallbacks)
+│   ├── wikipedia.R                 # Real events for a date ("On this day" feed)
 │   └── backfill.R                  # Backfill missing dates
 ├── app/                            # Shiny application
 │   ├── www/

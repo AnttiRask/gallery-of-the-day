@@ -1,4 +1,4 @@
-# OpenAI calls shared by the daily scripts. Needs R/config.R, httr2, jsonlite.
+# OpenAI calls shared by the daily scripts. Needs R/config.R, R/wikipedia.R, httr2, jsonlite.
 #
 # Every call fails with the API's own error message (not just "HTTP 400"), and
 # only errors worth retrying are retried. A rejected request is never retried
@@ -84,11 +84,10 @@ openai_text_json <- function(system, user, schema_name, schema) {
 event_schema <- list(
     type                 = "object",
     properties           = list(
-        year    = list(type = "integer", description = "Year of the event"),
-        event   = list(type = "string", description = "Short plain-text name of the event"),
+        choice  = list(type = "integer", description = "Number of the chosen event in the list"),
         caption = list(type = "string", description = "Plain-prose visual description of the scene")
     ),
-    required             = list("year", "event", "caption"),
+    required             = list("choice", "caption"),
     additionalProperties = FALSE
 )
 
@@ -113,30 +112,40 @@ clean_caption <- function(caption) {
     caption
 }
 
-check_event <- function(x) {
-    year <- suppressWarnings(as.integer(x$year))
-    if (length(year) != 1 || is.na(year) || year < 1 || year > as.integer(format(Sys.Date(), "%Y"))) {
-        stop("The event has no sensible year: ", x$year)
+# The year and the event come from the real list, never from the model's memory
+check_event <- function(x, events) {
+    choice <- suppressWarnings(as.integer(x$choice))
+    if (length(choice) != 1 || is.na(choice) || choice < 1 || choice > nrow(events)) {
+        stop("The model chose event number ", x$choice, ", which is not in the list of ", nrow(events))
     }
-    if (!is.character(x$event) || length(x$event) != 1 || !nzchar(x$event)) stop("The event has no name")
-    list(year = year, event = x$event, caption = clean_caption(x$caption))
+    list(
+        year    = events$year[choice],
+        event   = events$text[choice],
+        caption = clean_caption(x$caption)
+    )
 }
 
-# A positive historical event for `date`: list(year, event, caption)
-generate_event <- function(date) {
-    openai_text_json(event_system_message, event_user_prompt(date), "historical_event", event_schema) |>
-        check_event()
-}
-
-# A different event, when the first one could not be illustrated
-generate_alternative_event <- function(date, rejected_caption) {
+# A positive historical event for `date`: list(year, event, caption). `events` is
+# the real list for the date (fetched from Wikipedia unless given).
+generate_event <- function(date, events = fetch_onthisday(date)) {
     openai_text_json(
-        alternative_system_message,
-        alternative_user_prompt(date, rejected_caption),
+        event_system_message,
+        event_user_prompt(date, events),
         "historical_event",
         event_schema
     ) |>
-        check_event()
+        check_event(events)
+}
+
+# A different event, when the first one could not be illustrated
+generate_alternative_event <- function(date, rejected_caption, events = fetch_onthisday(date)) {
+    openai_text_json(
+        alternative_system_message,
+        alternative_user_prompt(date, events, rejected_caption),
+        "historical_event",
+        event_schema
+    ) |>
+        check_event(events)
 }
 
 # The same event described so that the safety system accepts it: a caption
@@ -156,7 +165,7 @@ sanitize_caption <- function(caption) {
 generate_image <- function(prompt) {
     body <- list(
         model   = openai_image_model,
-        prompt  = prompt,
+        prompt  = paste0(prompt, openai_image_prompt_suffix),
         n       = 1,
         size    = openai_image_size,
         quality = openai_image_quality

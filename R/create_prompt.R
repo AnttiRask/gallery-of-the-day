@@ -7,6 +7,7 @@ if (OPENAI_API_KEY == "") {
 # Load Turso helper functions and the shared settings and OpenAI helpers
 source("R/turso.R")
 source("R/config.R")
+source("R/wikipedia.R")
 source("R/openai.R")
 
 # Load packages ----

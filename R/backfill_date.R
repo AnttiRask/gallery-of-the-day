@@ -25,6 +25,7 @@ R2_BUCKET_NAME       <- Sys.getenv("R2_BUCKET_NAME")
 
 source("R/turso.R")
 source("R/config.R")
+source("R/wikipedia.R")
 source("R/openai.R")
 
 library(conflicted)

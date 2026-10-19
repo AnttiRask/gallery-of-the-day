@@ -14,6 +14,10 @@ openai_image_model <- "gpt-image-2.5-sunburst"
 openai_image_size    <- "1024x1024"
 openai_image_quality <- "high"
 
+# Added to the image prompt only (not stored with the caption): image models
+# invent text, and a wrong date or garbled lettering would spoil the picture
+openai_image_prompt_suffix <- "\n\nThe image must not contain any text, letters, numbers, dates, captions, signs or logos."
+
 # Prompts ----
 
 # "October 1" (no leading zero)
@@ -23,17 +27,23 @@ date_label <- function(date) {
 
 event_system_message <- "You are a cultural historian specializing in positive human achievements, scientific discoveries, and artistic milestones. You NEVER describe violence, conflict, or tragedy. Your role is to find the most visually compelling, uplifting historical moments suitable for beautiful AI-generated artwork."
 
+# "1969", or "331 BCE" for a negative year
+year_label <- function(year) {
+    ifelse(year < 0, paste(-year, "BCE"), as.character(year))
+}
+
+# The numbered list the model chooses from: "12. [1900] Max Planck discovers ..."
+format_event_list <- function(events) {
+    paste0(seq_len(nrow(events)), ". [", year_label(events$year), "] ", events$text, collapse = "\n")
+}
+
 event_output_format <- "OUTPUT FORMAT:
-Return JSON with three fields: year (the year of the event, as a number), event (a short plain-text name of the event, at most 12 words), and caption (the visual description).
-The caption must be plain prose in one or two paragraphs of about 150 to 250 words. Do not use markdown, headings, bullet points or bold text. Begin the caption with the date, the year and the name of the event (for example: \"On July 20, 1969, ...\").
+Return JSON with two fields: choice (the number of the event you chose from the list) and caption (the visual description).
+The caption must be plain prose in one or two paragraphs of about 150 to 250 words. Do not use markdown, headings, bullet points or bold text. Begin the caption with the date, the year exactly as shown in the list, and the name of the event (for example: \"On July 20, 1969, ...\").
+Describe only what the list entry says happened. Do not add facts you are not sure of, such as names of attendees, quotations or exact numbers.
 Do not mention brand names, trademarked or copyrighted characters, or logos."
 
-event_user_prompt <- function(date) {
-    label <- date_label(date)
-    paste0(
-        "You must provide a vivid visual description of a historical event from ", label, " that is suitable for AI image generation.
-
-REQUIREMENTS - You MUST choose from these categories ONLY:
+event_categories <- "REQUIREMENTS - the event MUST fit one of these categories ONLY:
 1. Scientific discoveries or technological breakthroughs
 2. Cultural celebrations, festivals, or traditions
 3. Artistic achievements (music premiers, art unveilings, literary milestones)
@@ -43,18 +53,24 @@ REQUIREMENTS - You MUST choose from these categories ONLY:
 7. Architectural completions or inaugurations
 8. Conservation or humanitarian milestones
 
-STRICT PROHIBITIONS - NEVER describe:
+STRICT PROHIBITIONS - NEVER choose or describe:
 - Wars, battles, military conflicts, or violence of any kind
 - Weapons, armor, or military equipment
 - Tragedies, disasters, assassinations, or deaths
-- Political controversies or protests
+- Political controversies or protests"
 
-VISUAL DESCRIPTION FORMAT:
-Describe the scene with vivid details: the setting, the people involved (their clothing, expressions, poses), the atmosphere (lighting, weather, mood), and significant objects or symbols. Focus on creating a visually compelling, uplifting image that celebrates human achievement or cultural heritage.
+event_visual_format <- "VISUAL DESCRIPTION FORMAT:
+Describe the scene with vivid details: the setting, the people involved (their clothing, expressions, poses), the atmosphere (lighting, weather, mood), and significant objects or symbols. Focus on creating a visually compelling, uplifting image that celebrates human achievement or cultural heritage."
 
-You MUST select an event from exactly ", label, ". If no event perfectly matches all categories above, choose the most positive and visually compelling event that occurred on this exact date in any year throughout history. Be certain that the event really happened on this date.
-
-",
+# `events` is the real list for the date (see R/wikipedia.R)
+event_user_prompt <- function(date, events) {
+    paste0(
+        "Below is a numbered list of real historical events that happened on ", date_label(date),
+        " (the years are correct; the list comes from Wikipedia). Choose exactly ONE of them as the subject of a vivid, image-ready visual description.\n\n",
+        event_categories, "\n\n",
+        event_visual_format, "\n\n",
+        "If no event fits the categories perfectly, choose the most positive and visually compelling one that does not break the prohibitions.\n\n",
+        "EVENTS:\n", format_event_list(events), "\n\n",
         event_output_format
     )
 }
@@ -72,19 +88,15 @@ sanitize_user_prompt <- function(caption) {
 # Used when the rewritten description is rejected too
 alternative_system_message <- "You are a historian who specializes in finding positive, uplifting historical events suitable for artistic visualization."
 
-alternative_user_prompt <- function(date, rejected_caption) {
+alternative_user_prompt <- function(date, events, rejected_caption) {
     paste0(
-        "I need a DIFFERENT historical event for ", date_label(date), " than this one, which could not be illustrated:\n\n",
+        "An image could not be made for this event, so I need a DIFFERENT one:\n\n",
         substr(rejected_caption, 1, 200), "...\n\n",
-        "Choose an event that is:
-- Peaceful, celebratory, or scientifically/culturally significant
-- NOT related to wars, conflicts, tragedies, or controversial topics
-- Visually interesting (art, science discoveries, cultural celebrations, sports achievements, space exploration, etc.)
-- Real and on exactly this date
-
-Focus on elements that would make a beautiful, uplifting image: the setting, the people involved, their clothing, and the atmosphere.
-
-",
+        "Below is a numbered list of real historical events that happened on ", date_label(date),
+        " (the years are correct; the list comes from Wikipedia). Choose exactly ONE of them, other than the event above, as the subject of a vivid, image-ready visual description.\n\n",
+        event_categories, "\n\n",
+        event_visual_format, "\n\n",
+        "EVENTS:\n", format_event_list(events), "\n\n",
         event_output_format
     )
 }

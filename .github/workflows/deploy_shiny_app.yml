@@ -1,0 +1,111 @@
+name: Deploy to Cloud Run
+
+# On demand for now: Actions tab > "Deploy to Cloud Run" > Run workflow. There is
+# no tests workflow yet, so it doesn't deploy on every push. Keep the service flags
+# in sync with deploy.sh.
+on:
+  workflow_dispatch:
+
+# Never run two deploys at once
+concurrency:
+  group: deploy-cloud-run
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+# Not secrets: the project id and number appear in every Cloud Run URL
+env:
+  PROJECT_ID: gallery-of-the-day-app
+  PROJECT_NUMBER: "106123401502"
+  REGION: europe-north1
+  SERVICE: gallery-of-the-day-app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write  # keyless Google Cloud login (Workload Identity Federation)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Only this repo's main branch can use the pool (see the provider's
+      # attribute condition); the account can deploy this one service and nothing else
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/gallery/providers/github-oidc
+          service_account: gallery-deploy@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+
+      # --async and polling: the deploy account can't stream the build log (it is
+      # not a project Viewer), and streaming makes gcloud exit with an error even
+      # when the build succeeds
+      - name: Build the image
+        run: |
+          IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$SERVICE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+          BUILD_ID=$(gcloud builds submit \
+            --tag "$IMAGE" \
+            --region "$REGION" \
+            --project "$PROJECT_ID" \
+            --timeout 3600 \
+            --async \
+            --format="value(id)")
+          echo "Build $BUILD_ID started"
+          while true; do
+            STATUS=$(gcloud builds describe "$BUILD_ID" \
+              --region "$REGION" --project "$PROJECT_ID" --format="value(status)")
+            echo "Build $BUILD_ID: $STATUS"
+            case "$STATUS" in
+              SUCCESS) break ;;
+              QUEUED|WORKING) sleep 20 ;;
+              *) exit 1 ;;
+            esac
+          done
+
+      # No --allow-unauthenticated: the service is already public and the deploy
+      # account may not change IAM. The secrets stay as the service already has them.
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image "$IMAGE" \
+            --project "$PROJECT_ID" \
+            --region "$REGION" \
+            --platform managed \
+            --service-account "gallery-runtime@$PROJECT_ID.iam.gserviceaccount.com" \
+            --memory 1Gi \
+            --timeout 3600 \
+            --session-affinity \
+            --max-instances 3 \
+            --update-labels "git-sha=${GITHUB_SHA::12}" \
+            --quiet
+
+      - name: Smoke test the deployed service
+        run: |
+          DESCRIBE_FORMAT='value(status.url,metadata.labels.git-sha)'
+          read -r URL LABEL < <(gcloud run services describe "$SERVICE" \
+            --project "$PROJECT_ID" --region "$REGION" --format="$DESCRIBE_FORMAT")
+          echo "Service URL: $URL"
+          echo "Deployed commit label: $LABEL (this run: ${GITHUB_SHA::12})"
+          if [ "$LABEL" != "${GITHUB_SHA::12}" ]; then
+            echo "The service doesn't carry this commit's label"
+            exit 1
+          fi
+          for attempt in 1 2 3 4 5; do
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "$URL/" || true)
+            echo "Attempt $attempt: HTTP $CODE"
+            if [ "$CODE" = "200" ]; then
+              echo "OK"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Service did not return HTTP 200"
+          exit 1

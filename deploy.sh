@@ -53,16 +53,21 @@ gcloud builds submit \
 # --timeout 3600 and --session-affinity: Cloud Run closes a Shiny page's websocket
 # at the request timeout (it was 300 s, so the page greyed out after 5 minutes);
 # 3600 s is the maximum. server.R lets the page reconnect after that.
+# --service-account: the app runs as gallery-runtime, which can read only the three
+# secrets (not as the default compute account, which holds roles/editor).
+# --max-instances 3 caps the cost if the page is flooded.
 echo -e "${GREEN}Deploying to Cloud Run...${NC}"
 gcloud run deploy "$SERVICE_NAME" \
     --image "$IMAGE" \
     --platform managed \
     --region "$REGION" \
     --project "$PROJECT_ID" \
+    --service-account "gallery-runtime@${PROJECT_ID}.iam.gserviceaccount.com" \
     --allow-unauthenticated \
     --memory 1Gi \
     --timeout 3600 \
-    --session-affinity
+    --session-affinity \
+    --max-instances 3
 
 # Get the service URL
 SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" --region "$REGION" --format="value(status.url)")

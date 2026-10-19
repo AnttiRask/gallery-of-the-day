@@ -15,6 +15,7 @@ source("R/turso.R")
 source("R/config.R")
 source("R/wikipedia.R")
 source("R/openai.R")
+source("R/r2.R")
 
 # Load packages ----
 library(conflicted)
@@ -93,7 +94,7 @@ cat("Bucket:", R2_BUCKET_NAME, "\n")
 cat("Object key:", object_key, "\n")
 cat("Endpoint:", r2_endpoint, "\n")
 
-put_result <- tryCatch({
+r2_put_with_retry(function() {
     put_object(
         file     = temp_file,
         object   = object_key,
@@ -103,17 +104,8 @@ put_result <- tryCatch({
         base_url = r2_endpoint,
         region   = ""
     )
-    TRUE  # put_object returns a structure on success, so explicitly return TRUE
-}, error = function(e) {
-    cat("R2 upload error:", conditionMessage(e), "\n")
-    FALSE
 })
-
-if (put_result) {
-    cat("Image uploaded to R2:", object_key, "\n")
-} else {
-    stop("Failed to upload image to R2")
-}
+cat("Image uploaded to R2:", object_key, "\n")
 
 # Clean up temp file
 unlink(temp_file)

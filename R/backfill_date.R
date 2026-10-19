@@ -34,6 +34,7 @@ source("R/turso.R")
 source("R/config.R")
 source("R/wikipedia.R")
 source("R/openai.R")
+source("R/r2.R")
 
 library(conflicted)
     conflicts_prefer(dplyr::filter)
@@ -56,7 +57,7 @@ upload_image <- function(image) {
     writeBin(image, temp_file)
     cat("Image saved, uploading to R2 as", object_key, "\n")
 
-    put_ok <- tryCatch({
+    r2_put_with_retry(function() {
         put_object(
             file     = temp_file,
             object   = object_key,
@@ -66,12 +67,7 @@ upload_image <- function(image) {
             base_url = r2_endpoint,
             region   = ""
         )
-        TRUE
-    }, error = function(e) {
-        cat("R2 upload error:", conditionMessage(e), "\n"); FALSE
     })
-
-    if (!put_ok) stop("Failed to upload image to R2")
 }
 
 save_caption <- function(caption) {

@@ -1,3 +1,38 @@
+/* Colours that differ between light and dark (--gallery-accent, --gallery-frame,
+   --gallery-shadow) are injected by ui.R, with the dark values under
+   [data-bs-theme=dark]; everything else follows Bootstrap's theme variables */
+
+/* Title row: centred title, the light/dark switch at the right */
+.gallery-header {
+    position: relative;
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.gallery-title { margin: 0; font-weight: 600; }
+
+/* "Gallery" in the brand accent (red; lighter red on dark), the rest in the text colour */
+.gallery-title-accent { color: var(--gallery-accent); }
+
+/* The light/dark switch: its icon shows the mode a click switches to, a moon
+   while light and a sun while dark (mode-toggle.js sets data-bs-theme on <html>) */
+.gallery-mode-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    padding: 0.4rem;
+    line-height: 0;
+    color: var(--bs-body-color);
+    cursor: pointer;
+}
+.gallery-mode-button:hover { background-color: var(--bs-tertiary-bg); }
+.gallery-icon-sun { display: none; }
+[data-bs-theme=dark] .gallery-icon-sun { display: block; }
+[data-bs-theme=dark] .gallery-icon-moon { display: none; }
+
 /* Gallery container - center content with max width */
 .gallery-container {
     max-width: 1200px;
@@ -11,9 +46,9 @@
     max-width: 100%;
     height: auto;
     margin: 0 auto;
-    border: 12px solid #C0C0C0;
+    border: 12px solid var(--gallery-frame);
     border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 8px 32px var(--gallery-shadow);
 }
 
 /* Date picker container */
@@ -26,7 +61,7 @@
 }
 
 .date-picker-container .control-label {
-    color: #C0C0C0 !important;
+    color: var(--bs-body-color);
     font-size: 1.2rem;
     margin-bottom: 0.5rem;
 }
@@ -56,35 +91,31 @@
 
 .ai-disclaimer p {
     margin: 0;
-    color: #909090;
+    color: var(--bs-secondary-color);
     font-size: 0.9rem;
     line-height: 1.6;
 }
 
 /* Footer styling */
 .app-footer {
-    border-top: 1px solid #333333;
+    border-top: 1px solid var(--bs-border-color);
     margin-top: 3rem;
     padding-top: 2rem;
 }
 
 .app-footer a {
-    color: #C1272D;
+    color: var(--bs-link-color);
     text-decoration: none;
 }
 
 .app-footer a:hover {
-    color: #a02025;
+    color: var(--bs-link-hover-color);
     text-decoration: underline;
-}
-
-.app-footer .text-muted {
-    color: #808080 !important;
 }
 
 /* Accessibility - Keyboard Navigation */
 a:focus, button:focus, input:focus, select:focus {
-    outline: 2px solid #C1272D;
+    outline: 2px solid var(--gallery-accent);
     outline-offset: 2px;
 }
 
@@ -158,9 +189,9 @@ a:focus, button:focus, input:focus, select:focus {
     max-height: 95vh;
     width: auto;
     height: auto;
-    border: 2px solid #C1272D;
+    border: 2px solid #F26B70;
     border-radius: 4px;
-    box-shadow: 0 8px 48px rgba(193, 39, 45, 0.3);
+    box-shadow: 0 8px 48px rgba(242, 107, 112, 0.3);
 }
 
 .lightbox-close {
@@ -169,7 +200,7 @@ a:focus, button:focus, input:focus, select:focus {
     right: 0;
     background: transparent;
     border: none;
-    color: #C1272D;
+    color: #F26B70;
     font-size: 48px;
     font-weight: bold;
     cursor: pointer;
@@ -179,11 +210,11 @@ a:focus, button:focus, input:focus, select:focus {
 }
 
 .lightbox-close:hover {
-    color: #a02025;
+    color: #FFFFFF;
 }
 
 .lightbox-close:focus {
-    outline: 2px solid #C1272D;
+    outline: 2px solid #F26B70;
     outline-offset: 4px;
 }
 
@@ -208,5 +239,12 @@ a:focus, button:focus, input:focus, select:focus {
 
     .lightbox-image {
         max-height: 90vh;
+    }
+}
+
+/* Keep the title clear of the light/dark switch on narrow screens */
+@media (max-width: 768px) {
+    .gallery-title {
+        padding: 0 2.5rem;
     }
 }

@@ -36,24 +36,94 @@ create_app_footer <- function(current_app = "") {
     )
 }
 
+# youcanbeapirate brand, the same as the other apps. Brand red is for chrome only;
+# `red_on_dark` is a lighter red for text and links on the dark background (brand
+# red is only 3.1:1 there, this is 6.2:1)
+brand_colours <- list(
+    red         = "#C1272D",
+    red_on_dark = "#F26B70",
+    dark_bg     = "#191414"
+)
+
+gotham_css_url <- "https://fonts.cdnfonts.com/css/gotham-6"
+
+# Versioned asset URLs, so browsers don't keep serving a stale stylesheet or
+# script after a change or a deploy
+asset <- function(file) {
+    paste0(file, "?v=", as.integer(file.mtime(file.path("www", file))))
+}
+
+# The light/dark switch. Its icon shows the mode a click switches to: a sun while
+# dark, a moon while light (CSS). mode-toggle.js flips Bootstrap's data-bs-theme.
+mode_toggle_button <- function() {
+    # Feather icons (MIT)
+    icon <- function(class, ...) {
+        tags$svg(
+            class = paste("gallery-mode-icon", class),
+            viewBox = "0 0 24 24",
+            width = "22",
+            height = "22",
+            fill = "none",
+            stroke = "currentColor",
+            `stroke-width` = "2",
+            `stroke-linecap` = "round",
+            `stroke-linejoin` = "round",
+            `aria-hidden` = "true",
+            ...
+        )
+    }
+
+    tags$button(
+        id = "mode-toggle",
+        type = "button",
+        class = "gallery-mode-button",
+        `data-label-to-light` = "Switch to light mode",
+        `data-label-to-dark` = "Switch to dark mode",
+        icon(
+            "gallery-icon-sun",
+            tags$circle(cx = "12", cy = "12", r = "5"),
+            tags$path(d = "M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42")
+        ),
+        icon(
+            "gallery-icon-moon",
+            tags$path(d = "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z")
+        )
+    )
+}
+
 ui <- page_fluid(
     title = "Gallery of the Day",
     theme = bs_theme(
         version = 5,
-        bg = "#000000",
-        fg = "#C0C0C0",
-        primary = "#C1272D",
-        base_font = font_google("EB Garamond"),
-        heading_font = font_google("EB Garamond")
-    ),
+        primary = brand_colours$red,
+        base_font = font_collection(
+            font_link("Gotham", href = gotham_css_url),
+            "system-ui", "-apple-system", "Segoe UI", "Roboto",
+            "Helvetica Neue", "Arial", "sans-serif"
+        )
+    ) |>
+        # Bootstrap's dark-mode palette, in the brand dark background and with a
+        # lighter brand red for links
+        bs_add_variables(
+            "body-bg-dark"          = brand_colours$dark_bg,
+            "link-color-dark"       = brand_colours$red_on_dark,
+            "link-hover-color-dark" = brand_colours$red_on_dark
+        ),
 
     tags$head(
+        # Colours that differ between the modes, from one place
+        tags$style(HTML(paste0(
+            ":root{--gallery-accent:", brand_colours$red, ";--gallery-frame:#B2B2B2;--gallery-shadow:rgba(0,0,0,0.25);}",
+            "[data-bs-theme=dark]{--gallery-accent:", brand_colours$red_on_dark, ";--gallery-frame:#C0C0C0;--gallery-shadow:rgba(0,0,0,0.5);}"
+        ))),
         tags$link(rel = "shortcut icon", type = "image/png", href = "favicon.png"),
         tags$link(
             rel  = "stylesheet",
             type = "text/css",
-            href = "styles.css"
+            href = asset("styles.css")
         ),
+        # Sets the page to dark straight away, so it must load in the head
+        tags$script(src = asset("mode-toggle.js")),
         # Lightbox and keyboard navigation functionality
         tags$script(HTML("
             $(document).ready(function() {
@@ -208,10 +278,15 @@ ui <- page_fluid(
     div(
         class = "gallery-container",
 
-        # Title
+        # Title and the light/dark switch
         div(
-            class = "text-center my-4",
-            h1("Gallery of the Day", class = "display-3")
+            class = "gallery-header",
+            # First word in the brand colour, like the other apps' titles
+            h1(
+                class = "display-3 gallery-title",
+                HTML('<span class="gallery-title-accent">Gallery</span> of the Day')
+            ),
+            mode_toggle_button()
         ),
 
         # Image

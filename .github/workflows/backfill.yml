@@ -43,26 +43,27 @@ jobs:
         DATES: ${{ inputs.dates }}
       run: |
         valid() { [[ "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && date -d "$1" >/dev/null 2>&1; }
-        : > dates.txt
+        DATES_FILE="$RUNNER_TEMP/dates.txt"
+        : > "$DATES_FILE"
         if [[ -n "${DATES// /}" ]]; then
           for d in ${DATES//,/ }; do
             valid "$d" || { echo "::error::Not a valid date: $d"; exit 1; }
-            echo "$d" >> dates.txt
+            echo "$d" >> "$DATES_FILE"
           done
         else
           valid "$START_DATE" && valid "$END_DATE" || { echo "::error::Give a valid start_date and end_date, or a list of dates"; exit 1; }
           [[ ! "$START_DATE" > "$END_DATE" ]] || { echo "::error::start_date is after end_date"; exit 1; }
           d="$START_DATE"
           while [[ ! "$d" > "$END_DATE" ]]; do
-            echo "$d" >> dates.txt
+            echo "$d" >> "$DATES_FILE"
             d=$(date -d "$d + 1 day" +%F)
           done
         fi
         today=$(date -u +%F)
         while read -r d; do
           [[ ! "$d" > "$today" ]] || { echo "::error::$d is in the future"; exit 1; }
-        done < dates.txt
-        echo "$(wc -l < dates.txt) day(s) to do, from $(head -1 dates.txt) to $(tail -1 dates.txt)"
+        done < "$DATES_FILE"
+        echo "$(wc -l < "$DATES_FILE") day(s) to do, from $(head -1 "$DATES_FILE") to $(tail -1 "$DATES_FILE")"
 
     - name: Check out repository
       uses: actions/checkout@v4
@@ -91,6 +92,7 @@ jobs:
         R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
         R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
       run: |
+        DATES_FILE="$RUNNER_TEMP/dates.txt"
         flag=""
         [[ "$REGENERATE" == "true" ]] && flag="--regenerate"
         failed=()
@@ -103,7 +105,7 @@ jobs:
             failed+=("$d")
           fi
           echo "::endgroup::"
-        done < dates.txt
+        done < "$DATES_FILE"
         echo "Backfilled (or already complete): $done_count day(s)"
         if (( ${#failed[@]} > 0 )); then
           echo "::error::Failed dates: ${failed[*]}"

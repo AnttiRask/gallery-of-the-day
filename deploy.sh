@@ -50,6 +50,9 @@ gcloud builds submit \
     --timeout 3600
 
 # Deploy to Cloud Run
+# --timeout 3600 and --session-affinity: Cloud Run closes a Shiny page's websocket
+# at the request timeout (it was 300 s, so the page greyed out after 5 minutes);
+# 3600 s is the maximum. server.R lets the page reconnect after that.
 echo -e "${GREEN}Deploying to Cloud Run...${NC}"
 gcloud run deploy "$SERVICE_NAME" \
     --image "$IMAGE" \
@@ -58,7 +61,8 @@ gcloud run deploy "$SERVICE_NAME" \
     --project "$PROJECT_ID" \
     --allow-unauthenticated \
     --memory 1Gi \
-    --timeout 300
+    --timeout 3600 \
+    --session-affinity
 
 # Get the service URL
 SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" --region "$REGION" --format="value(status.url)")

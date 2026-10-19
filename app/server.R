@@ -10,6 +10,14 @@ library(stringr)
 
 server <- function(input, output, session) {
 
+    # Reconnect quietly when the websocket drops: Cloud Run closes it at the
+    # --timeout (3600 s at most). TRUE would do nothing here: the client only
+    # reconnects if the host (Shiny Server, Posit Connect) allows it too; "force"
+    # makes it reconnect anyway. The server can't resume the old session, so a new
+    # one starts and the browser re-sends its inputs. That is fine for this app:
+    # it only reads from Turso, so nothing paid or written sits behind an input.
+    session$allowReconnect("force")
+
     # Read the prompts data from Turso reactively
     prompts <- reactive({
         turso_query("SELECT date, text FROM prompts ORDER BY date")

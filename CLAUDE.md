@@ -45,6 +45,7 @@ R -e "renv::restore()"
 - **Image Storage**: Cloudflare R2 with public URL, images named `gallery-of-the-day-{YYYY-MM-DD}.png`
 - **Hosting**: Google Cloud Run (production) or Docker Compose (development)
 - **Automation**: GitHub Actions runs daily at 4 AM UTC (`.github/workflows/r_scripts_daily.yml`)
+- **Reconnects**: Cloud Run closes a page's websocket at the request `--timeout` (it was 300 s, so the page greyed out after 5 minutes). `deploy.sh` now sets `--timeout 3600` (the maximum) and `--session-affinity`, and `server.R` calls `session$allowReconnect("force")`. `TRUE` does nothing on Cloud Run: the client only reconnects if the host (Shiny Server, Posit Connect) allows it too. With `"force"` a new session starts and the browser re-sends its inputs (the selected date survives); keep everything behind an input read-only, because a reconnect re-runs it. Tested by closing the socket in a browser: reconnected in about 2.5 s with the line, stayed disconnected without it.
 
 ## Environment Variables
 

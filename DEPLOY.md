@@ -22,6 +22,8 @@
 
 The `app/` directory is volume-mounted, so code changes are reflected without rebuilding.
 
+The image is the production image: Ubuntu 24.04 with R 4.5.2, running as a non-root user. The first build restores the R packages (a few minutes); later builds reuse the cached layer until `renv.lock` changes. The app's `www/security.R` sends the security headers; check them with `curl -sI http://localhost:8083/`.
+
 ## Deploy to Google Cloud Run
 
 ### Automated Deployment

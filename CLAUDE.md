@@ -38,6 +38,9 @@ R -e "renv::restore()"
 - `app/server.R` - Shiny server logic, fetches prompts reactively, sends available dates to client for keyboard navigation
 - `app/ui.R` - Shiny UI with bslib/Bootstrap 5 theming, includes lightbox and keyboard navigation JavaScript
 - `app/www/functions.R` - Helper functions including `clean_and_break_text()` for caption formatting
+- `app/www/security.R` - Security headers (CSP, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS); `app/run.R` wraps the app's `httpHandler` with them
+- `app/www/variables.R` - Settings shared by `run.R` and `config.R` (the default R2 public URL)
+- `app/www/mode-toggle.js` - Light/dark switch (dark default)
 
 ### Infrastructure
 
@@ -45,6 +48,8 @@ R -e "renv::restore()"
 - **Image Storage**: Cloudflare R2 with public URL, images named `gallery-of-the-day-{YYYY-MM-DD}.png`
 - **Hosting**: Google Cloud Run (production) or Docker Compose (development)
 - **Automation**: GitHub Actions runs daily at 4 AM UTC (`.github/workflows/r_scripts_daily.yml`)
+- **Image**: `Dockerfile` uses `rocker/r-ver:4.5.2` (the R version in `renv.lock`) and runs as the non-root user `gallery`. It restores only the packages the app needs (shiny, bslib, dplyr, stringr, httr2, jsonlite, renv, plus dependencies) from Posit's Linux binaries; the daily scripts' packages stay in the lockfile for GitHub Actions. `.dockerignore` is an allowlist, and `.env`, `.Renviron` and `secret.R` never enter the image. Build and run locally: `docker compose up --build` (http://localhost:8083).
+- **Security headers**: `www/security.R` sets an enforced CSP that allows exactly the fonts host (`fonts.cdnfonts.com`) and the R2 host the images come from (derived from `R2_PUBLIC_URL`; a value that isn't an `https://` URL stops the start, so Cloud Run keeps the previous revision). No `'unsafe-eval'`. Tested in Chrome with a violation recorder as the first script in `<head>` (prove the recorder first with a foreign image or script): the full app (date picker, arrow keys, lightbox, theme switch) produced zero real violations. One report is expected and harmless: Shiny 1.12.1 calls `setTimeout(undefined, 0)` after rendering dynamic output (`shiny.min.js`), which the browser treats as a code string. Rancher Desktop can't bind-mount `/tmp`, so mount test copies from under the home directory.
 - **Reconnects**: Cloud Run closes a page's websocket at the request `--timeout` (it was 300 s, so the page greyed out after 5 minutes). `deploy.sh` now sets `--timeout 3600` (the maximum) and `--session-affinity`, and `server.R` calls `session$allowReconnect("force")`. `TRUE` does nothing on Cloud Run: the client only reconnects if the host (Shiny Server, Posit Connect) allows it too. With `"force"` a new session starts and the browser re-sends its inputs (the selected date survives); keep everything behind an input read-only, because a reconnect re-runs it. Tested by closing the socket in a browser: reconnected in about 2.5 s with the line, stayed disconnected without it.
 
 ## Environment Variables

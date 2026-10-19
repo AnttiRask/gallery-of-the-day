@@ -2,9 +2,11 @@
 # Reads from environment variables set during deployment (secure)
 # Falls back to hardcoded values for local development only
 
+source("www/variables.R")
+
 R2_PUBLIC_URL <- Sys.getenv("R2_PUBLIC_URL")
 if (R2_PUBLIC_URL == "") {
-    R2_PUBLIC_URL <- "https://pub-fa8ba5f601374e88994818db80a1c9d2.r2.dev"
+    R2_PUBLIC_URL <- r2_public_url_default
 }
 
 TURSO_DATABASE_URL <- Sys.getenv("TURSO_DATABASE_URL")

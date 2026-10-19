@@ -51,23 +51,28 @@ echo -n "your-turso-url" | gcloud secrets create TURSO_DATABASE_URL --data-file=
 echo -n "your-turso-token" | gcloud secrets create TURSO_AUTH_TOKEN --data-file=-
 echo -n "your-r2-public-url" | gcloud secrets create R2_PUBLIC_URL --data-file=-
 
-# Grant Cloud Run access to secrets
-PROJECT_NUMBER=$(gcloud projects describe gallery-of-the-day-app --format="value(projectNumber)")
-gcloud secrets add-iam-policy-binding TURSO_DATABASE_URL \
-    --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
-    --role="roles/secretmanager.secretAccessor"
-gcloud secrets add-iam-policy-binding TURSO_AUTH_TOKEN \
-    --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
-    --role="roles/secretmanager.secretAccessor"
-gcloud secrets add-iam-policy-binding R2_PUBLIC_URL \
-    --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
-    --role="roles/secretmanager.secretAccessor"
+# The app runs as its own account that can read these three secrets and nothing
+# else (not as the default compute account, which holds roles/editor)
+gcloud iam service-accounts create gallery-runtime --display-name "Gallery of the Day runtime"
+for s in TURSO_DATABASE_URL TURSO_AUTH_TOKEN R2_PUBLIC_URL; do
+    gcloud secrets add-iam-policy-binding $s \
+        --member="serviceAccount:gallery-runtime@gallery-of-the-day-app.iam.gserviceaccount.com" \
+        --role="roles/secretmanager.secretAccessor"
+done
 
-# Redeploy with secrets
+# Redeploy with secrets (deploy.sh sets the service account and --max-instances 3)
 gcloud run deploy gallery-of-the-day-app \
     --region europe-north1 \
+    --service-account gallery-runtime@gallery-of-the-day-app.iam.gserviceaccount.com \
     --set-secrets="TURSO_DATABASE_URL=TURSO_DATABASE_URL:latest,TURSO_AUTH_TOKEN=TURSO_AUTH_TOKEN:latest,R2_PUBLIC_URL=R2_PUBLIC_URL:latest"
 ```
+
+### Identities and keyless deploys
+
+- **Runtime:** `gallery-runtime` (no project roles; `secretAccessor` on the 3 secrets only). The default compute account lost `roles/editor` and keeps `roles/cloudbuild.builds.builder`, which Cloud Build needs.
+- **GitHub deploys:** the workflow `deploy_shiny_app.yml` (manual: Actions > "Deploy to Cloud Run") logs in with no stored key, through Workload Identity Federation: pool `gallery`, provider `github-oidc`, which accepts only `AnttiRask/gallery-of-the-day` on `refs/heads/main`. It acts as `gallery-deploy`, which can deploy this one service and nothing else: `run.developer` on the service, `serviceAccountUser` on the runtime and compute accounts, `artifactregistry.writer` on the one repository, `objectAdmin` and `legacyBucketReader` on the `_cloudbuild` bucket, and project-wide only `cloudbuild.builds.editor` and the custom role `galleryBucketLister` (just `storage.buckets.list`: `builds submit` lists buckets).
+- **Why the build is `--async`:** `gallery-deploy` is not a project Viewer, so it can't stream the build log and `builds submit` would exit with an error even when the build succeeds. The workflow polls the build status instead.
+- Tested: from `main` the whole chain passes; from another branch the login is refused (`unauthorized_client`); as the account itself, reading secrets, changing IAM, listing accounts and creating another service are all denied.
 
 ### Custom Domain
 

@@ -35,7 +35,7 @@ cat("Asking", openai_text_model, "for an event on", date_label(today()), "...\n"
 
 event <- generate_event(today())
 
-cat("Event:", event$year, "-", event$event, "\n")
+cat("Event:", year_label(event$year), "-", event$event, "\n")
 cat("Generated prompt length:", nchar(event$caption), "characters\n")
 
 # Save to Turso database ----

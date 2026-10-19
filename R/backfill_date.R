@@ -1,17 +1,24 @@
 # Backfill prompt + image for a single past date.
-# Usage: Rscript R/backfill_date.R YYYY-MM-DD
+# Usage: Rscript R/backfill_date.R YYYY-MM-DD [--regenerate]
 #
 # Mirrors create_prompt.R + fetch_image.R but parameterized by date so a gap in
 # the daily run can be filled in. Inserts the prompt into Turso and uploads the
 # image to R2 under gallery-of-the-day-YYYY-MM-DD.png. Skips work that's already
 # done so it's safe to re-run.
+#
+# With --regenerate the day is made again from scratch (a new event and a new
+# image) even though it exists. The new event and image are made first and the
+# caption in Turso is updated only after the upload, so a failure leaves the old
+# day as it was. Archive the old image and caption before using it.
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 1 || !grepl("^\\d{4}-\\d{2}-\\d{2}$", args[1])) {
-    stop("Usage: Rscript R/backfill_date.R YYYY-MM-DD")
+if (!length(args) %in% 1:2 || !grepl("^\\d{4}-\\d{2}-\\d{2}$", args[1]) ||
+    (length(args) == 2 && args[2] != "--regenerate")) {
+    stop("Usage: Rscript R/backfill_date.R YYYY-MM-DD [--regenerate]")
 }
 target_date <- as.Date(args[1])
 target_date_str <- as.character(target_date)
+regenerate <- length(args) == 2
 
 OPENAI_API_KEY <- Sys.getenv("OPENAI_API_KEY")
 if (OPENAI_API_KEY == "") {
@@ -39,6 +46,62 @@ library(lubridate)
 library(purrr)
 library(stringr)
 
+object_key <- str_glue("gallery-of-the-day-{target_date_str}.png")
+r2_endpoint <- str_glue("{R2_ACCOUNT_ID}.r2.cloudflarestorage.com")
+
+# Upload raw PNG bytes to R2 (replaces an existing object with the same key)
+upload_image <- function(image) {
+    temp_file <- tempfile(fileext = ".png")
+    on.exit(unlink(temp_file))
+    writeBin(image, temp_file)
+    cat("Image saved, uploading to R2 as", object_key, "\n")
+
+    put_ok <- tryCatch({
+        put_object(
+            file     = temp_file,
+            object   = object_key,
+            bucket   = R2_BUCKET_NAME,
+            key      = R2_ACCESS_KEY_ID,
+            secret   = R2_SECRET_ACCESS_KEY,
+            base_url = r2_endpoint,
+            region   = ""
+        )
+        TRUE
+    }, error = function(e) {
+        cat("R2 upload error:", conditionMessage(e), "\n"); FALSE
+    })
+
+    if (!put_ok) stop("Failed to upload image to R2")
+}
+
+save_caption <- function(caption) {
+    existing <- turso_query("SELECT COUNT(*) as count FROM prompts WHERE date = ?", list(target_date_str))
+    if (as.integer(existing$count[1]) > 0) {
+        turso_execute("UPDATE prompts SET text = ? WHERE date = ?", list(caption, target_date_str))
+    } else {
+        turso_execute("INSERT INTO prompts (text, date) VALUES (?, ?)", list(caption, target_date_str))
+    }
+    cat("Prompt saved for", target_date_str, "\n")
+}
+
+if (regenerate) {
+
+    # ---- Regenerate: a new event and image; Turso is updated last ----
+
+    cat("Regenerating", target_date_str, "with", openai_text_model, "and", openai_image_model, "...\n")
+
+    event <- generate_event(target_date)
+    cat("Event:", year_label(event$year), "-", event$event, "\n")
+
+    result <- generate_image_with_fallbacks(event$caption, target_date)
+
+    upload_image(result$image)
+    save_caption(result$caption)
+
+    cat("Done regenerating", target_date_str, "\n")
+    quit(save = "no", status = 0)
+}
+
 # ---- Step 1: ensure a prompt exists in Turso for target_date ----
 
 existing <- turso_query(
@@ -55,27 +118,13 @@ if (nrow(existing) > 0 && !is.na(existing$text[1]) && nchar(existing$text[1]) > 
     event <- generate_event(target_date)
     prompt_text <- event$caption
 
-    cat("Event:", event$year, "-", event$event, "\n")
+    cat("Event:", year_label(event$year), "-", event$event, "\n")
     cat("Generated prompt length:", nchar(prompt_text), "characters\n")
 
-    if (nrow(existing) > 0) {
-        turso_execute(
-            "UPDATE prompts SET text = ? WHERE date = ?",
-            list(prompt_text, target_date_str)
-        )
-    } else {
-        turso_execute(
-            "INSERT INTO prompts (text, date) VALUES (?, ?)",
-            list(prompt_text, target_date_str)
-        )
-    }
-    cat("Prompt saved for", target_date_str, "\n")
+    save_caption(prompt_text)
 }
 
 # ---- Step 2: ensure an image exists in R2 for target_date ----
-
-object_key <- str_glue("gallery-of-the-day-{target_date_str}.png")
-r2_endpoint <- str_glue("{R2_ACCOUNT_ID}.r2.cloudflarestorage.com")
 
 image_exists <- tryCatch({
     head_object(
@@ -101,32 +150,8 @@ result <- generate_image_with_fallbacks(prompt_text, target_date)
 
 if (result$changed) {
     cat("Updating Turso prompt to the version that succeeded.\n")
-    turso_execute(
-        "UPDATE prompts SET text = ? WHERE date = ?",
-        list(result$caption, target_date_str)
-    )
+    save_caption(result$caption)
 }
 
-temp_file <- tempfile(fileext = ".png")
-writeBin(result$image, temp_file)
-cat("Image saved, uploading to R2 as", object_key, "\n")
-
-put_ok <- tryCatch({
-    put_object(
-        file     = temp_file,
-        object   = object_key,
-        bucket   = R2_BUCKET_NAME,
-        key      = R2_ACCESS_KEY_ID,
-        secret   = R2_SECRET_ACCESS_KEY,
-        base_url = r2_endpoint,
-        region   = ""
-    )
-    TRUE
-}, error = function(e) {
-    cat("R2 upload error:", conditionMessage(e), "\n"); FALSE
-})
-
-unlink(temp_file)
-
-if (!put_ok) stop("Failed to upload image to R2")
+upload_image(result$image)
 cat("Done backfilling", target_date_str, "\n")

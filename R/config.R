@@ -43,21 +43,34 @@ The caption must be plain prose in one or two paragraphs of about 150 to 250 wor
 Describe only what the list entry says happened. Do not add facts you are not sure of, such as names of attendees, quotations or exact numbers.
 Do not mention brand names, trademarked or copyrighted characters, or logos."
 
-event_categories <- "REQUIREMENTS - the event MUST fit one of these categories ONLY:
-1. Scientific discoveries or technological breakthroughs
-2. Cultural celebrations, festivals, or traditions
-3. Artistic achievements (music premiers, art unveilings, literary milestones)
-4. Sports achievements or inaugural events
-5. Space exploration milestones
-6. Peaceful diplomatic achievements or treaty signings
-7. Architectural completions or inaugurations
-8. Conservation or humanitarian milestones
+event_category_names <- c(
+    "Scientific discoveries or technological breakthroughs",
+    "Cultural celebrations, festivals, or traditions",
+    "Artistic achievements (music premiers, art unveilings, literary milestones)",
+    "Sports achievements or inaugural events",
+    "Space exploration milestones",
+    "Peaceful diplomatic achievements or treaty signings",
+    "Architectural completions or inaugurations",
+    "Conservation or humanitarian milestones"
+)
+
+event_categories <- paste0(
+    "REQUIREMENTS - the event MUST fit one of these categories ONLY:\n",
+    paste0(seq_along(event_category_names), ". ", event_category_names, collapse = "\n"),
+    "
 
 STRICT PROHIBITIONS - NEVER choose or describe:
 - Wars, battles, military conflicts, or violence of any kind
 - Weapons, armor, or military equipment
 - Tragedies, disasters, assassinations, or deaths
 - Political controversies or protests"
+)
+
+# The model drifts towards science and space; rotating the preferred category by
+# day of the year keeps the gallery varied without forbidding anything
+preferred_category <- function(date) {
+    event_category_names[(as.integer(format(date, "%j")) - 1) %% length(event_category_names) + 1]
+}
 
 event_visual_format <- "VISUAL DESCRIPTION FORMAT:
 Describe the scene with vivid details: the setting, the people involved (their clothing, expressions, poses), the atmosphere (lighting, weather, mood), and significant objects or symbols. Focus on creating a visually compelling, uplifting image that celebrates human achievement or cultural heritage."
@@ -69,7 +82,7 @@ event_user_prompt <- function(date, events) {
         " (the years are correct; the list comes from Wikipedia). Choose exactly ONE of them as the subject of a vivid, image-ready visual description.\n\n",
         event_categories, "\n\n",
         event_visual_format, "\n\n",
-        "If no event fits the categories perfectly, choose the most positive and visually compelling one that does not break the prohibitions.\n\n",
+        "Today, prefer an event in this category if one fits well: ", preferred_category(date), ". If none does, choose the most positive and visually compelling event from any category that does not break the prohibitions.\n\n",
         "EVENTS:\n", format_event_list(events), "\n\n",
         event_output_format
     )

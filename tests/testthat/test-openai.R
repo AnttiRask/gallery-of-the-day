@@ -119,6 +119,18 @@ test_that("years before the common era are labelled BCE in the list", {
     expect_match(format_event_list(data.frame(year = -331L, text = "A battle.")), "1. [331 BCE] A battle.", fixed = TRUE)
 })
 
+test_that("the preferred category rotates with the day of the year and appears in the prompt", {
+    expect_equal(preferred_category(as.Date("2026-01-01")), event_category_names[1])
+    expect_equal(preferred_category(as.Date("2026-01-02")), event_category_names[2])
+    expect_equal(preferred_category(as.Date("2026-01-09")), event_category_names[1])  # 8 categories
+    expect_setequal(preferred_category(as.Date("2026-01-01") + 0:7), event_category_names)
+
+    prompt <- event_user_prompt(as.Date("2026-01-03"), sample_events)
+    expect_match(prompt, paste0("prefer an event in this category if one fits well: ", event_category_names[3]), fixed = TRUE)
+    # a nudge, not a rule: the other categories stay allowed
+    expect_match(prompt, "from any category", fixed = TRUE)
+})
+
 test_that("the one-field schema keeps `required` an array", {
     json <- jsonlite::toJSON(caption_schema, auto_unbox = TRUE)
     expect_match(as.character(json), "\"required\":[\"caption\"]", fixed = TRUE)

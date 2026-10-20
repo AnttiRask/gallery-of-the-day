@@ -1,0 +1,49 @@
+name: Tests
+
+# Runs the testthat suite on every push to main and on pull requests, so a
+# change that breaks the daily scripts or the security headers is caught before
+# it is deployed.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A newer push to the same branch makes the older run pointless
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Set up R environment
+      uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+      with:
+        r-version: '4.5'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+
+    - name: Set up renv
+      uses: r-lib/actions/setup-renv@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+
+    # testthat is a development tool, not a dependency of the scripts or the app,
+    # so it is not in renv.lock; install it next to the restored packages
+    - name: Install testthat
+      run: Rscript -e 'install.packages("testthat", repos = "https://cloud.r-project.org")'
+
+    # No credentials are passed on purpose: the tests must not call any service
+    - name: Run the tests
+      run: Rscript -e 'testthat::test_dir("tests/testthat", reporter = "check", stop_on_failure = TRUE)'

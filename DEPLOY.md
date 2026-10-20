@@ -119,3 +119,5 @@ Google Cloud Run free tier includes:
 - 180,000 vCPU-seconds
 
 This app should stay well within the free tier.
+
+A budget named "Gallery of the Day" (EUR 10 a month, this project only) emails the billing account's admins at 50%, 90% and 100% of actual spend. It only alerts; `--max-instances 3` is what limits the cost. Manage it with `gcloud billing budgets list --billing-account 01022A-90DC69-4116A8` (the Budget API is enabled on the project).

@@ -5,6 +5,11 @@
 # environment variable overrides it; local development uses this default.
 r2_public_url_default <- "https://pub-fa8ba5f601374e88994818db80a1c9d2.r2.dev"
 
+# How old the newest image may get before the page says so. The daily run is at
+# 04:00 UTC and GitHub sometimes starts it hours late (08:59 once), so one missed
+# day must not trigger the note.
+stale_after_days <- 2
+
 # youcanbeapirate brand, the same as the other apps. Brand red is for chrome only;
 # `red_on_dark` is a lighter red for text and links on the dark background (brand
 # red is only 3.1:1 there, this is 6.2:1)

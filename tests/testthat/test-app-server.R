@@ -67,3 +67,46 @@ test_that("a date without a prompt says there is no image for it", {
         expect_false(grepl("<img", out, fixed = TRUE))
     }))
 })
+
+# The stale-data note ----
+
+fresh_days <- function(n_old) {
+    day <- as.Date(Sys.time(), tz = "UTC") - n_old
+    list(status = "ok", data = data.frame(date = as.character(day), text = "A fine day.", stringsAsFactors = FALSE))
+}
+
+test_that("stale_note appears only when the newest image is more than the limit old", {
+    today <- as.Date("2026-10-20")
+    expect_null(app_env$stale_note("2026-10-20", today, limit = 2))
+    expect_null(app_env$stale_note("2026-10-19", today, limit = 2))
+    expect_null(app_env$stale_note("2026-10-18", today, limit = 2))   # exactly 2 days: still fine
+    note <- app_env$stale_note("2026-10-17", today, limit = 2)       # 3 days: say so
+    expect_match(as.character(note), "The newest image is from 2026-10-17.", fixed = TRUE)
+    expect_match(as.character(note), "stale-note", fixed = TRUE)
+    expect_null(app_env$stale_note(NA, today, limit = 2))
+})
+
+test_that("the limit comes from variables.R", {
+    expect_equal(app_env$stale_after_days, 2)
+})
+
+test_that("old data shows the note, in the page", {
+    with_loaded(two_days, shiny::testServer(app_env$server, {
+        expect_match(html(output$staleNote), "The newest image is from 2026-01-02.", fixed = TRUE)
+    }))
+})
+
+test_that("fresh data shows no note", {
+    with_loaded(fresh_days(0), shiny::testServer(app_env$server, {
+        expect_false(any(grepl("stale-note", html(output$staleNote), fixed = TRUE)))
+    }))
+    with_loaded(fresh_days(2), shiny::testServer(app_env$server, {
+        expect_false(any(grepl("stale-note", html(output$staleNote), fixed = TRUE)))
+    }))
+})
+
+test_that("no data shows no note, only the unavailable message", {
+    with_loaded(list(status = "unavailable", data = NULL), shiny::testServer(app_env$server, {
+        expect_error(output$staleNote)
+    }))
+})

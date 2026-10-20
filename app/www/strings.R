@@ -24,6 +24,9 @@ strings <- list(
     image_failed = "The image for this date couldn't be loaded.",
     try_again    = "Try again",
 
+    # Shown when the newest image is older than stale_after_days; %s is its date
+    stale = "The newest image is from %s. New images may be delayed.",
+
     # Shown under every caption; the sentences are joined with a space
     disclaimer = c(
         "Historical events and images are generated with AI. ",

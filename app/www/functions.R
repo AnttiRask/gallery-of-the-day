@@ -53,3 +53,19 @@ state_message <- function(text, retry = FALSE) {
         }
     )
 }
+
+
+# A quiet note above the image when the newest image is more than `limit` days
+# old (for example after failed daily runs); NULL when the data is fresh.
+# `newest` is a date or a "YYYY-MM-DD" string; `today` is in UTC like the daily run.
+stale_note <- function(newest, today = as.Date(Sys.time(), tz = "UTC"), limit = stale_after_days) {
+    newest <- as.Date(newest)
+    if (is.na(newest) || as.numeric(today - newest) <= limit) {
+        return(NULL)
+    }
+    p(
+        class = "stale-note small text-muted text-center",
+        role  = "status",
+        sprintf(strings$stale, format(newest, "%Y-%m-%d"))
+    )
+}

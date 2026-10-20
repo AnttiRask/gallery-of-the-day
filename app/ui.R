@@ -124,6 +124,9 @@ ui <- page_fluid(
             mode_toggle_button()
         ),
 
+        # Note shown only when the newest image is old
+        uiOutput("staleNote"),
+
         # Image
         uiOutput("imageGallery"),
 

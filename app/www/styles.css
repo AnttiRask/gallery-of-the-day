@@ -274,3 +274,8 @@ a:focus, button:focus, input:focus, select:focus {
     color: var(--bs-body-color);
     background-color: var(--bs-tertiary-bg);
 }
+
+/* Quiet note above the image when the newest image is old */
+.stale-note {
+    margin: 0 auto 1rem;
+}

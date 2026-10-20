@@ -85,6 +85,12 @@ server <- function(input, output, session) {
         )
     })
 
+    # A quiet note when the newest image is old (the daily run has been failing)
+    output$staleNote <- renderUI({
+        req(available_dates())
+        stale_note(max(available_dates()))
+    })
+
     output$imageGallery <- renderUI({
 
         # No data to show: say so instead of an R error page

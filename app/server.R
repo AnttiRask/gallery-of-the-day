@@ -1,12 +1,4 @@
-# Source functions and config
-source("www/functions.R")
-source("www/turso.R")
-source("config.R")
-
-# Load packages
-library(dplyr)
-library(shiny)
-library(stringr)
+# Packages, helpers and config are loaded by global.R
 
 server <- function(input, output, session) {
 
@@ -34,10 +26,10 @@ server <- function(input, output, session) {
     # Render the date input UI
     output$dateInput_ui <- renderUI({
         div(
-            `aria-label` = "Date selection for gallery image",
+            `aria-label` = strings$date_aria,
             dateInput(
                 "dateInput",
-                "Choose a Date",
+                strings$date_label,
                 value = max(available_dates()),
                 min   = min(available_dates()),
                 max   = max(available_dates())
@@ -111,7 +103,7 @@ server <- function(input, output, session) {
 
         } else {
 
-            h5("No image available for this date.")
+            h5(strings$no_image)
 
         }
     })
@@ -134,7 +126,7 @@ server <- function(input, output, session) {
         if (length(selected_info()$image) > 0 && length(selected_info()$prompt) > 0) {
             p(caption_elements)
         } else {
-            p("No caption available for this date.")
+            p(strings$no_caption)
         }
     })
 }

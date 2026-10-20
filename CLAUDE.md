@@ -39,7 +39,11 @@ R -e "renv::restore()"
 - `app/ui.R` - Shiny UI with bslib/Bootstrap 5 theming, includes lightbox and keyboard navigation JavaScript
 - `app/www/functions.R` - Helper functions including `clean_and_break_text()` for caption formatting
 - `app/www/security.R` - Security headers (CSP, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS); `app/run.R` wraps the app's `httpHandler` with them
-- `app/www/variables.R` - Settings shared by `run.R` and `config.R` (the default R2 public URL)
+- `app/global.R` - Loaded by Shiny before `ui.R` and `server.R`: the libraries and the `source()` calls for `www/variables.R`, `strings.R`, `functions.R`, `turso.R` and `config.R`. The Docker image has only shiny, bslib, dplyr, stringr, httr2 and jsonlite, so the app code must not use other packages (for example purrr).
+- `app/www/variables.R` - Settings shared by `run.R`, `config.R` and `ui.R`: the default R2 public URL, brand colours, the font URL and the footer's app list
+- `app/www/strings.R` - All user-facing text (title, labels, disclaimer, "no image" messages)
+- `app/www/lightbox.js` - Lightbox and arrow-key date navigation (it was inline in `ui.R`)
+- Everything in `app/www/` is served publicly: never put a secret in it
 - `app/www/mode-toggle.js` - Light/dark switch (dark default)
 
 ### Infrastructure

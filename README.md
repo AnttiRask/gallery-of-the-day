@@ -36,7 +36,11 @@ gallery-of-the-day/
 ├── app/                            # Shiny application
 │   ├── www/
 │   │   ├── functions.R             # Helper functions
+│   │   ├── variables.R             # Settings: colours, footer apps, R2 URL
+│   │   ├── strings.R               # All user-facing text
+│   │   ├── lightbox.js             # Lightbox and arrow-key navigation
 │   │   └── styles.css              # Custom styling
+│   ├── global.R                    # Libraries and sourced files
 │   ├── ui.R                        # User interface (bslib + Bootstrap 5)
 │   ├── server.R                    # Server logic
 │   └── run.R                       # App entry point

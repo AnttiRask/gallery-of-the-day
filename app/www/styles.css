@@ -248,3 +248,29 @@ a:focus, button:focus, input:focus, select:focus {
         padding: 0 2.5rem;
     }
 }
+
+/* Message shown in place of the image when something is missing or unavailable */
+.state-message {
+    max-width: 36rem;
+    margin: 2rem auto;
+    padding: 2.5rem 1.5rem;
+    border: 1px dashed var(--bs-border-color);
+    border-radius: 8px;
+    color: var(--bs-secondary-color);
+}
+
+.state-message p {
+    margin-bottom: 0;
+}
+
+.state-message .state-retry {
+    margin-top: 1rem;
+    /* Bootstrap's secondary outline button is too dim on the dark background */
+    color: var(--bs-body-color);
+    border-color: var(--bs-border-color);
+}
+
+.state-message .state-retry:hover {
+    color: var(--bs-body-color);
+    background-color: var(--bs-tertiary-bg);
+}

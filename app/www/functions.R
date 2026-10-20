@@ -35,3 +35,21 @@ clean_and_break_text <- function(text) {
         add_spaces_after_periods() %>%
         insert_row_breaks()
 }
+
+# A quiet message in place of the image (and the date picker and caption) when
+# something is missing. `retry` adds a button that reloads the page (see
+# lightbox.js).
+state_message <- function(text, retry = FALSE) {
+    div(
+        class = "state-message text-center",
+        role  = "status",
+        p(text),
+        if (retry) {
+            tags$button(
+                type  = "button",
+                class = "btn btn-outline-secondary btn-sm state-retry",
+                strings$try_again
+            )
+        }
+    )
+}

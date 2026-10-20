@@ -1,6 +1,23 @@
 // Lightbox and keyboard navigation (loaded in the head by ui.R).
 // Clicking the image opens it full size; the left and right arrow keys move
 // between the dates the server sends in `updateAvailableDates`.
+// If the day's image fails to load (missing in R2, network), replace it with a
+// short message. `error` events don't bubble, so listen in the capture phase. The
+// text comes from the server (data-error-text, see server.R). The element loses its
+// .gallery-image class, so the lightbox can't open on it.
+document.addEventListener('error', function(e) {
+    var img = e.target;
+    if (img && img.classList && img.classList.contains('gallery-image')) {
+        var msg = document.createElement('div');
+        msg.className = 'state-message text-center';
+        msg.setAttribute('role', 'status');
+        var p = document.createElement('p');
+        p.textContent = img.getAttribute('data-error-text') || 'The image could not be loaded.';
+        msg.appendChild(p);
+        img.replaceWith(msg);
+    }
+}, true);
+
 $(document).ready(function() {
     // Delegate click handler for gallery images (rendered dynamically by renderUI)
     $(document).on('click', '.gallery-image', function(e) {
@@ -26,6 +43,11 @@ $(document).ready(function() {
 
         // Prevent body scroll
         $('body').css('overflow', 'hidden');
+    });
+
+    // "Try again" button of the unavailable message
+    $(document).on('click', '.state-retry', function() {
+        location.reload();
     });
 
     // Close on backdrop click

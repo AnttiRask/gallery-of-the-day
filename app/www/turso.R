@@ -9,8 +9,8 @@ convert_to_https <- function(url) {
     gsub("^libsql://", "https://", url)
 }
 
-# Execute a SQL query and return results as a data frame
-turso_query <- function(sql, params = list()) {
+# The HTTP request for a SQL statement, with the app's timeout and retry policy
+turso_request <- function(sql, params = list()) {
     # Get credentials from config (sourced in server.R)
     database_url <- convert_to_https(TURSO_DATABASE_URL)
     auth_token <- TURSO_AUTH_TOKEN
@@ -40,12 +40,26 @@ turso_query <- function(sql, params = list()) {
     )
 
     # Make the request
-    response <- request(paste0(database_url, "/v2/pipeline")) %>%
+    request(paste0(database_url, "/v2/pipeline")) %>%
         req_headers(
             Authorization = paste("Bearer", auth_token),
             `Content-Type` = "application/json"
         ) %>%
         req_body_json(body) %>%
+        # A slow Turso must not hang the page: give up after 8 s, and try once more
+        # after a network error or a 429/5xx (not after other 4xx, such as a bad token)
+        req_timeout(8) %>%
+        req_retry(
+            max_tries        = 2,
+            retry_on_failure = TRUE,
+            is_transient     = \(resp) resp_status(resp) %in% c(429, 500, 502, 503, 504),
+            backoff          = \(i) getOption("turso.retry_pause", 1)
+        )
+}
+
+# Execute a SQL query and return results as a data frame
+turso_query <- function(sql, params = list()) {
+    response <- turso_request(sql, params) %>%
         req_perform()
 
     # Parse response

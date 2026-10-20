@@ -41,7 +41,8 @@ R -e "renv::restore()"
 - `app/www/security.R` - Security headers (CSP, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS); `app/run.R` wraps the app's `httpHandler` with them
 - `app/global.R` - Loaded by Shiny before `ui.R` and `server.R`: the libraries and the `source()` calls for `www/variables.R`, `strings.R`, `functions.R`, `turso.R` and `config.R`. The Docker image has only shiny, bslib, dplyr, stringr, httr2 and jsonlite, so the app code must not use other packages (for example purrr).
 - `app/www/variables.R` - Settings shared by `run.R`, `config.R` and `ui.R`: the default R2 public URL, brand colours, the font URL and the footer's app list
-- `app/www/strings.R` - All user-facing text (title, labels, disclaimer, "no image" messages)
+- `app/www/strings.R` - All user-facing text (title, labels, disclaimer, error-state messages)
+- `app/www/data.R` - `load_prompts()`, the app's never-throwing data layer: returns `ok`, `empty` or `unavailable`; the real error goes to the log, visitors see a message (`state_message()` in `functions.R`) and, when unavailable, a "Try again" button. `turso_request()` in `turso.R` sets an 8 s timeout and one retry (network errors, 429 and 5xx; not other 4xx). httr2's mocking skips the retry loop, so retries were verified against a local server that answers 500 then 200, not in unit tests. A missing image is swapped for a message by `lightbox.js`. `global.R` sets `shiny.sanitize.errors`, so any other error shows Shiny's generic message.
 - `app/www/lightbox.js` - Lightbox and arrow-key date navigation (it was inline in `ui.R`)
 - Everything in `app/www/` is served publicly: never put a secret in it
 - `app/www/mode-toggle.js` - Light/dark switch (dark default)

@@ -10,13 +10,17 @@ server <- function(input, output, session) {
     # it only reads from Turso, so nothing paid or written sits behind an input.
     session$allowReconnect("force")
 
-    # Read the prompts data from Turso reactively
-    prompts <- reactive({
-        turso_query("SELECT date, text FROM prompts ORDER BY date")
-    })
+    # Read the prompts from Turso. load_prompts() never throws: it returns a status
+    # ("ok", "empty" or "unavailable") and the page shows a message for the last two
+    loaded <- reactive(load_prompts())
+
+    # The prompts, or NULL when there are none to show (anything depending on this
+    # then stays quietly empty)
+    prompts <- reactive(loaded()$data)
 
     # A reactive expression to return available_dates based on prompts_data
     available_dates <- reactive({
+        req(prompts())
         prompts() %>%
             pull(date) %>%
             unique() %>%
@@ -83,8 +87,18 @@ server <- function(input, output, session) {
 
     output$imageGallery <- renderUI({
 
-        # Ensure selected_info is available before trying to use it
-        req(selected_info())
+        # No data to show: say so instead of an R error page
+        if (loaded()$status == "unavailable") {
+            return(state_message(strings$unavailable, retry = TRUE))
+        }
+        if (loaded()$status == "empty") {
+            return(state_message(strings$empty))
+        }
+
+        # A date without a prompt (for example after a failed daily run)
+        if (is.null(selected_info())) {
+            return(state_message(strings$no_entry))
+        }
 
         # If there's a matching image and caption, display them
         if (length(selected_info()$image) > 0 && length(selected_info()$prompt) > 0) {
@@ -98,7 +112,9 @@ server <- function(input, output, session) {
             img(
                 src   = selected_info()$image,
                 class = "gallery-image",
-                alt   = alt_text
+                alt   = alt_text,
+                # lightbox.js swaps the image for this text if it fails to load
+                `data-error-text` = strings$image_failed
             )
 
         } else {

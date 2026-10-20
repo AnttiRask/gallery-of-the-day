@@ -17,6 +17,13 @@ strings <- list(
     no_image   = "No image available for this date.",
     no_caption = "No caption available for this date.",
 
+    # Error states (see state_message() in functions.R)
+    unavailable  = "The gallery can't load right now. Please try again in a few minutes.",
+    empty        = "No images yet.",
+    no_entry     = "There is no image for this date.",
+    image_failed = "The image for this date couldn't be loaded.",
+    try_again    = "Try again",
+
     # Shown under every caption; the sentences are joined with a space
     disclaimer = c(
         "Historical events and images are generated with AI. ",

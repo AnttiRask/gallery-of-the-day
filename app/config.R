@@ -11,10 +11,3 @@ if (R2_PUBLIC_URL == "") {
 
 TURSO_DATABASE_URL <- Sys.getenv("TURSO_DATABASE_URL")
 TURSO_AUTH_TOKEN   <- Sys.getenv("TURSO_AUTH_TOKEN")
-
-# For local development, source secret.R if env vars not set
-if (TURSO_DATABASE_URL == "" || TURSO_AUTH_TOKEN == "") {
-    if (file.exists("../secret.R")) {
-        source("../secret.R")
-    }
-}

@@ -31,7 +31,8 @@ gallery-of-the-day/
 │   ├── config.R                    # Models and prompts
 │   ├── openai.R                    # OpenAI calls (retries, safety fallbacks)
 │   ├── wikipedia.R                 # Real events for a date ("On this day" feed)
-│   └── backfill.R                  # Backfill missing dates
+│   ├── r2.R                        # R2 upload with retries
+│   └── backfill_date.R             # Create (or regenerate) one missing day
 ├── app/                            # Shiny application
 │   ├── www/
 │   │   ├── functions.R             # Helper functions

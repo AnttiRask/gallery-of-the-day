@@ -1,10 +1,10 @@
-# Get API key from environment variable (GitHub Actions) or secret.R (local)
+# Get API key from the environment (GitHub Actions secret, or .Renviron locally)
 OPENAI_API_KEY <- Sys.getenv("OPENAI_API_KEY")
 if (OPENAI_API_KEY == "") {
-    source("secret.R")
+    stop("OPENAI_API_KEY is not set (add it to the environment or .Renviron)")
 }
 
-# Get R2 credentials from environment variables or secret.R (already sourced above)
+# Get R2 credentials from the environment
 R2_ACCOUNT_ID        <- Sys.getenv("R2_ACCOUNT_ID")
 R2_ACCESS_KEY_ID     <- Sys.getenv("R2_ACCESS_KEY_ID")
 R2_SECRET_ACCESS_KEY <- Sys.getenv("R2_SECRET_ACCESS_KEY")

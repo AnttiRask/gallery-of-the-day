@@ -22,7 +22,7 @@ regenerate <- length(args) == 2
 
 OPENAI_API_KEY <- Sys.getenv("OPENAI_API_KEY")
 if (OPENAI_API_KEY == "") {
-    source("secret.R")
+    stop("OPENAI_API_KEY is not set (add it to the environment or .Renviron)")
 }
 
 R2_ACCOUNT_ID        <- Sys.getenv("R2_ACCOUNT_ID")

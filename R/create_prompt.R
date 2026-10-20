@@ -1,7 +1,7 @@
-# Get API key from environment variable (GitHub Actions) or secret.R (local)
+# Get API key from the environment (GitHub Actions secret, or .Renviron locally)
 OPENAI_API_KEY <- Sys.getenv("OPENAI_API_KEY")
 if (OPENAI_API_KEY == "") {
-    source("secret.R")
+    stop("OPENAI_API_KEY is not set (add it to the environment or .Renviron)")
 }
 
 # Load Turso helper functions and the shared settings and OpenAI helpers

@@ -13,7 +13,7 @@ Gallery of the Day is an R/Shiny web app that displays daily AI-generated images
 docker compose up --build
 # App available at http://localhost:8083
 
-# Run automation scripts locally (requires .env or secret.R with credentials)
+# Run automation scripts locally (requires the credentials as environment variables, e.g. in .Renviron)
 Rscript R/create_prompt.R    # Generate today's historical event prompt
 Rscript R/fetch_image.R      # Create and upload today's image
 
@@ -64,7 +64,7 @@ Required for Shiny app:
 - `R2_PUBLIC_URL` - Public URL for R2 bucket
 - `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` - Turso database
 
-For local development, credentials can be placed in `secret.R` (gitignored) or `.env`.
+For local development, put the credentials in `.Renviron` (scripts) or `.env` (Docker Compose). There is no `secret.R` any more; the scripts stop with a clear message if `OPENAI_API_KEY` is missing.
 
 ## Content Guidelines
 

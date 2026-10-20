@@ -74,6 +74,10 @@ gcloud run deploy gallery-of-the-day-app \
 - **Why the build is `--async`:** `gallery-deploy` is not a project Viewer, so it can't stream the build log and `builds submit` would exit with an error even when the build succeeds. The workflow polls the build status instead.
 - Tested: from `main` the whole chain passes; from another branch the login is refused (`unauthorized_client`); as the account itself, reading secrets, changing IAM, listing accounts and creating another service are all denied.
 
+### Image cleanup
+
+Every deploy pushes a ~240 MB image to the `cloud-run-source-deploy` repository (5.2 GB had piled up by October 2026). A cleanup policy on the repository (it runs daily) keeps the 5 most recent versions and deletes any version older than 14 days; keep rules win, so the live image (always among the newest) is safe. To change it, edit the numbers and run `gcloud artifacts repositories set-cleanup-policies cloud-run-source-deploy --location europe-north1 --project gallery-of-the-day-app --policy FILE.json` (add `--dry-run` to test first; the result only shows in the audit log after the next daily run).
+
 ### Custom Domain
 
 ```bash

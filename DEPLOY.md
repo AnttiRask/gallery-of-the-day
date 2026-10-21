@@ -111,6 +111,16 @@ gcloud run logs read --service gallery-of-the-day-app --region europe-north1
 gcloud run services describe gallery-of-the-day-app --region europe-north1
 ```
 
+### Uptime check and alerts
+
+`GET https://galleryoftheday.youcanbeapirate.com/health` answers 200 `ok`, or 503 with a reason (`unavailable`, `empty`, `stale`: the newest image is more than a day old, `degraded`: the cached prompts are served because Turso fails). `/` is not enough: it returns 200 even when Turso is down or the daily job has failed. Open `/health` in a browser to see which problem it is.
+
+Set up in Cloud Monitoring (project `gallery-of-the-day-app`, all created with gcloud on 2026-10-21):
+- **Uptime check** "Gallery of the Day /health": HTTPS GET `/health` every 5 minutes from all 6 regions, 10 s timeout, valid SSL required, 2xx and a body containing `ok` (check id `gallery-of-the-day-health-t_CCZEBpjQM`). About 255,000 results a month, under the free 1 million executions ($0.30 per 1,000 above it).
+- **Email channel** "Gallery of the Day alerts" to the owner's address (`gcloud beta monitoring channels list`).
+- **Alert policy** "Gallery of the Day: /health failing": fires when the check fails from more than one region for 10 minutes, closes itself on recovery. The definition is in `monitoring/health-alert-policy.json`; recreate it with `gcloud monitoring policies create --project gallery-of-the-day-app --policy-from-file=monitoring/health-alert-policy.json` (the channel and check ids in the file are this project's).
+- Tested end to end on 2026-10-21 with a temporary always-failing check: the alert opened after about 7 minutes, the email arrived, and it closed by itself 7 minutes after the check was fixed. The temporary check and policy were deleted. (The test policy used a 60 s duration instead of 600 s.)
+
 ## Cost
 
 Google Cloud Run free tier includes:

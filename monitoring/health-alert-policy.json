@@ -1,0 +1,33 @@
+{
+  "displayName": "Gallery of the Day: /health failing",
+  "combiner": "OR",
+  "enabled": true,
+  "conditions": [
+    {
+      "displayName": "The /health uptime check fails from at least 2 regions for 10 minutes",
+      "conditionThreshold": {
+        "filter": "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.check_id=\"gallery-of-the-day-health-t_CCZEBpjQM\" AND resource.type=\"uptime_url\"",
+        "aggregations": [
+          {
+            "alignmentPeriod": "1200s",
+            "perSeriesAligner": "ALIGN_NEXT_OLDER",
+            "crossSeriesReducer": "REDUCE_COUNT_FALSE",
+            "groupByFields": ["resource.label.*"]
+          }
+        ],
+        "comparison": "COMPARISON_GT",
+        "thresholdValue": 1,
+        "duration": "600s",
+        "trigger": {"count": 1}
+      }
+    }
+  ],
+  "notificationChannels": [
+    "projects/gallery-of-the-day-app/notificationChannels/14465440884515191422"
+  ],
+  "alertStrategy": {"autoClose": "604800s"},
+  "documentation": {
+    "mimeType": "text/markdown",
+    "content": "https://galleryoftheday.youcanbeapirate.com/health answered with an error (or not at all). Open it in a browser: the body says why.\n\n- `unavailable` or `degraded`: Turso is failing. Check Turso's status and the Cloud Run logs (search for \"Loading the prompts failed\"). The page keeps showing the cached copy for up to 7 days.\n- `stale: the newest image is from <date>`: the daily run did not produce a day. Check the \"Run R Scripts Daily\" workflow in GitHub Actions (failed run? disabled after 60 days idle? OpenAI credits?).\n- `empty`: the prompts table has no rows.\n- No answer at all: the Cloud Run service or the domain mapping is down.\n\nSee DEPLOY.md in the repository."
+  }
+}

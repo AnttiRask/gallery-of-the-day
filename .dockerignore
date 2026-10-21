@@ -2,6 +2,9 @@
 # the git history, local renv libraries) stays out by default.
 *
 !app
+!R
+R/*
+!R/turso.R
 !renv.lock
 !.Rprofile
 !renv/activate.R

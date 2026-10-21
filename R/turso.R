@@ -1,5 +1,8 @@
 # Turso Database Helper Functions
-# Uses the Turso HTTP API via httr2
+# Uses the Turso HTTP API via httr2. Shared by the daily scripts (R/) and the Shiny
+# app (app/global.R sources this file; the Dockerfile copies it into the image).
+# Credentials come from the TURSO_DATABASE_URL and TURSO_AUTH_TOKEN environment
+# variables, or from variables of the same name (the app's config.R sets them).
 
 library(httr2)
 library(jsonlite)
@@ -9,26 +12,26 @@ convert_to_https <- function(url) {
     gsub("^libsql://", "https://", url)
 }
 
-# Execute a SQL query and return results as a data frame
-turso_query <- function(sql, params = list(), database_url = NULL, auth_token = NULL) {
-    # Use provided credentials or fall back to environment/global variables
-    if (is.null(database_url)) {
-        database_url <- Sys.getenv("TURSO_DATABASE_URL")
-        if (database_url == "" && exists("TURSO_DATABASE_URL")) {
-            database_url <- TURSO_DATABASE_URL
-        }
+# A setting from the environment, or from a variable of the same name if the
+# environment doesn't have it
+turso_setting <- function(name) {
+    value <- Sys.getenv(name)
+    if (value == "" && exists(name)) {
+        value <- get(name)
     }
-    if (is.null(auth_token)) {
-        auth_token <- Sys.getenv("TURSO_AUTH_TOKEN")
-        if (auth_token == "" && exists("TURSO_AUTH_TOKEN")) {
-            auth_token <- TURSO_AUTH_TOKEN
-        }
-    }
+    value
+}
 
-    # Convert libsql:// to https:// for HTTP API
-    database_url <- convert_to_https(database_url)
+# The HTTP request for a SQL statement. `retry` is only for statements that are safe
+# to send twice (reads): a write whose answer was lost may already have happened, and
+# running it again could duplicate a row (prompts_archive has no unique key) or fail
+# with a confusing UNIQUE error (prompts). Reads give up after 8 s and try once more
+# after a network error or a 429/5xx (not after other 4xx, such as a bad token);
+# writes get 30 s and a single try.
+turso_request <- function(sql, params = list(), retry = TRUE) {
+    database_url <- convert_to_https(turso_setting("TURSO_DATABASE_URL"))
+    auth_token <- turso_setting("TURSO_AUTH_TOKEN")
 
-    # Build the request body
     # Convert params to Turso's expected format
     args <- lapply(params, function(p) {
         if (is.character(p)) {
@@ -53,26 +56,45 @@ turso_query <- function(sql, params = list(), database_url = NULL, auth_token = 
         )
     )
 
-    # Make the request
-    response <- request(paste0(database_url, "/v2/pipeline")) %>%
+    req <- request(paste0(database_url, "/v2/pipeline")) %>%
         req_headers(
             Authorization = paste("Bearer", auth_token),
             `Content-Type` = "application/json"
         ) %>%
-        req_body_json(body) %>%
-        req_perform()
+        req_body_json(body)
 
-    # Parse response
+    if (retry) {
+        req %>%
+            req_timeout(8) %>%
+            req_retry(
+                max_tries        = 2,
+                retry_on_failure = TRUE,
+                is_transient     = \(resp) resp_status(resp) %in% c(429, 500, 502, 503, 504),
+                backoff          = \(i) getOption("turso.retry_pause", 1)
+            )
+    } else {
+        req %>% req_timeout(30)
+    }
+}
+
+# The first result of a Turso reply, stopping with Turso's own message on an error
+turso_first_result <- function(response) {
     result <- resp_body_json(response)
 
-    # Check for errors
     if (!is.null(result$results[[1]]$error)) {
         stop("Turso error: ", result$results[[1]]$error$message)
     }
 
-    # Extract data and convert to data frame
-    if (!is.null(result$results[[1]]$response$result)) {
-        res <- result$results[[1]]$response$result
+    result$results[[1]]$response$result
+}
+
+# Execute a SQL query and return results as a data frame
+turso_query <- function(sql, params = list()) {
+    res <- turso_request(sql, params) %>%
+        req_perform() %>%
+        turso_first_result()
+
+    if (!is.null(res)) {
         cols <- sapply(res$cols, function(x) x$name)
         rows <- res$rows
 
@@ -97,69 +119,15 @@ turso_query <- function(sql, params = list(), database_url = NULL, auth_token = 
     return(NULL)
 }
 
-# Execute a SQL statement (INSERT, UPDATE, DELETE) - returns affected rows
-turso_execute <- function(sql, params = list(), database_url = NULL, auth_token = NULL) {
-    # Use provided credentials or fall back to environment/global variables
-    if (is.null(database_url)) {
-        database_url <- Sys.getenv("TURSO_DATABASE_URL")
-        if (database_url == "" && exists("TURSO_DATABASE_URL")) {
-            database_url <- TURSO_DATABASE_URL
-        }
-    }
-    if (is.null(auth_token)) {
-        auth_token <- Sys.getenv("TURSO_AUTH_TOKEN")
-        if (auth_token == "" && exists("TURSO_AUTH_TOKEN")) {
-            auth_token <- TURSO_AUTH_TOKEN
-        }
-    }
+# Execute a SQL statement (INSERT, UPDATE, DELETE) - returns affected rows.
+# Never retried (see turso_request()).
+turso_execute <- function(sql, params = list()) {
+    res <- turso_request(sql, params, retry = FALSE) %>%
+        req_perform() %>%
+        turso_first_result()
 
-    # Convert libsql:// to https:// for HTTP API
-    database_url <- convert_to_https(database_url)
-
-    # Build the request body
-    args <- lapply(params, function(p) {
-        if (is.character(p)) {
-            list(type = "text", value = p)
-        } else if (is.numeric(p)) {
-            list(type = "integer", value = as.character(as.integer(p)))
-        } else {
-            list(type = "text", value = as.character(p))
-        }
-    })
-
-    body <- list(
-        requests = list(
-            list(
-                type = "execute",
-                stmt = list(
-                    sql = sql,
-                    args = args
-                )
-            ),
-            list(type = "close")
-        )
-    )
-
-    # Make the request
-    response <- request(paste0(database_url, "/v2/pipeline")) %>%
-        req_headers(
-            Authorization = paste("Bearer", auth_token),
-            `Content-Type` = "application/json"
-        ) %>%
-        req_body_json(body) %>%
-        req_perform()
-
-    # Parse response
-    result <- resp_body_json(response)
-
-    # Check for errors
-    if (!is.null(result$results[[1]]$error)) {
-        stop("Turso error: ", result$results[[1]]$error$message)
-    }
-
-    # Return affected rows count
-    if (!is.null(result$results[[1]]$response$result)) {
-        return(result$results[[1]]$response$result$affected_row_count)
+    if (!is.null(res)) {
+        return(res$affected_row_count)
     }
 
     return(0)

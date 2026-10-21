@@ -47,6 +47,8 @@ RUN CODENAME="$(. /etc/os-release && echo "$VERSION_CODENAME")" \
 # report the daily scripts' packages as "not installed" on every cold start
 ENV RENV_CONFIG_SYNCHRONIZED_CHECK=FALSE
 
+# Shared with the daily scripts (R/), so the app and the scripts use one Turso client
+COPY R/turso.R R/turso.R
 COPY app app
 
 # Don't run as root

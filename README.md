@@ -32,6 +32,7 @@ gallery-of-the-day/
 │   ├── openai.R                    # OpenAI calls (retries, safety fallbacks)
 │   ├── wikipedia.R                 # Real events for a date ("On this day" feed)
 │   ├── r2.R                        # R2 upload with retries
+│   ├── turso.R                     # Turso client (scripts and app)
 │   └── backfill_date.R             # Create (or regenerate) one missing day
 ├── app/                            # Shiny application
 │   ├── www/

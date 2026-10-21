@@ -40,6 +40,7 @@ gallery-of-the-day/
 │   │   ├── variables.R             # Settings: colours, footer apps, R2 URL
 │   │   ├── strings.R               # All user-facing text
 │   │   ├── data.R                  # Loads the prompts (never throws; error states)
+│   │   ├── health.R                # /health for the uptime monitor
 │   │   ├── lightbox.js             # Lightbox and arrow-key navigation
 │   │   └── styles.css              # Custom styling
 │   ├── global.R                    # Libraries and sourced files

@@ -10,6 +10,11 @@ r2_public_url_default <- "https://pub-fa8ba5f601374e88994818db80a1c9d2.r2.dev"
 # day must not trigger the note.
 stale_after_days <- 2
 
+# How old the newest image may be before /health reports "stale" (the uptime monitor
+# then alerts): 1 means a whole day was missed, because by 00:00 UTC the day before
+# should be there (the daily run is at 04:00 UTC, and has been up to ~9 h late).
+health_max_age_days <- 1
+
 # The prompts are cached in memory (see load_prompts() in data.R). They change once a
 # day, so a copy is used for 5 minutes; if Turso then fails, the old copy is served
 # for up to 7 days (the stale note says when it is old) and Turso is left alone for

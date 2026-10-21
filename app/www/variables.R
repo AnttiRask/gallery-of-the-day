@@ -10,6 +10,14 @@ r2_public_url_default <- "https://pub-fa8ba5f601374e88994818db80a1c9d2.r2.dev"
 # day must not trigger the note.
 stale_after_days <- 2
 
+# The prompts are cached in memory (see load_prompts() in data.R). They change once a
+# day, so a copy is used for 5 minutes; if Turso then fails, the old copy is served
+# for up to 7 days (the stale note says when it is old) and Turso is left alone for
+# 30 s after a failure. The options are only there so tests can use short times.
+prompts_cache_seconds   <- getOption("gallery.prompts_cache_seconds", 5 * 60)
+prompts_retry_seconds   <- getOption("gallery.prompts_retry_seconds", 30)
+prompts_max_age_seconds <- getOption("gallery.prompts_max_age_seconds", 7 * 24 * 60 * 60)
+
 # youcanbeapirate brand, the same as the other apps. Brand red is for chrome only;
 # `red_on_dark` is a lighter red for text and links on the dark background (brand
 # red is only 3.1:1 there, this is 6.2:1)

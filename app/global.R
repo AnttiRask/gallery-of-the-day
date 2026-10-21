@@ -16,3 +16,7 @@ source("www/functions.R")
 source("www/turso.R")
 source("www/data.R")
 source("config.R")
+
+# Fill the prompts cache once the app is up, so the first visitor doesn't wait for
+# Turso. Failure is harmless: load_prompts() never throws and the first session retries.
+later::later(function() invisible(load_prompts()), delay = 1)

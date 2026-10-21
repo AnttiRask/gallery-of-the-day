@@ -52,3 +52,4 @@ rsconnect/
 
 # Local diagnostic exports (OpenAI usage CSVs etc.)
 diagnosis/
+tests/testthat/_problems/

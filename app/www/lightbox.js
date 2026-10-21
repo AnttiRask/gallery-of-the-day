@@ -25,15 +25,18 @@ $(document).ready(function() {
         var imgSrc = $(this).attr('src');
         var imgAlt = $(this).attr('alt');
 
-        // Create lightbox HTML
+        // Create the lightbox with DOM calls, not by joining strings into HTML: the
+        // alt text comes from the caption, and a quote in it must not break out of
+        // the attribute. jQuery sets these as attributes, so any text is safe.
         var lightbox = $('<div>', {
             id: 'image-lightbox',
-            class: 'lightbox-overlay',
-            html: '<div class="lightbox-content">' +
-                  '<button class="lightbox-close" aria-label="Close lightbox">&times;</button>' +
-                  '<img src="' + imgSrc + '" alt="' + imgAlt + '" class="lightbox-image">' +
-                  '</div>'
-        });
+            class: 'lightbox-overlay'
+        }).append(
+            $('<div>', {class: 'lightbox-content'}).append(
+                $('<button>', {class: 'lightbox-close', 'aria-label': 'Close lightbox'}).text('\u00d7'),
+                $('<img>', {src: imgSrc, alt: imgAlt, class: 'lightbox-image'})
+            )
+        );
 
         // Append and fade in
         $('body').append(lightbox);

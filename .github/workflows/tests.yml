@@ -19,9 +19,9 @@ permissions:
 
 jobs:
   test:
-    # Not ubuntu-latest: it moved to Ubuntu 26.04 on 2026-10-31 and `later` 1.4.5 (locked)
-    # doesn't compile there (glibc 2.43 / GCC 15). Update `later` in renv.lock (1.4.7+
-    # fixes it) and test on 26.04 before changing this.
+    # Not ubuntu-latest: it moved to Ubuntu 26.04 on 2026-10-31 and the old `later` 1.4.5
+    # didn't compile there (glibc 2.43 / GCC 15). renv.lock has `later` 1.4.8 now (compiles
+    # on 26.04, checked in a container); test the whole restore on 26.04 before changing this.
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 

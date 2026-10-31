@@ -12,10 +12,10 @@ concurrency:
 
 jobs:
   run-scripts:
-    # Not ubuntu-latest: it moved to Ubuntu 26.04 on 2026-10-31 and the old `later` 1.4.5
-    # didn't compile there (glibc 2.43 / GCC 15). renv.lock has `later` 1.4.8 now (compiles
-    # on 26.04, checked in a container); test the whole restore on 26.04 before changing this.
-    runs-on: ubuntu-24.04
+    # Pinned, not ubuntu-latest: the label moved to Ubuntu 26.04 on 2026-10-31 and the old
+    # `later` 1.4.5 didn't compile there (glibc 2.43 / GCC 15). Tested on 26.04 with `later`
+    # 1.4.8 (full restore, 290 tests). Move to the next Ubuntu on purpose, after the same test.
+    runs-on: ubuntu-26.04
 
     permissions:
       contents: read

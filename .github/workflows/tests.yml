@@ -19,7 +19,10 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Not ubuntu-latest: it moved to Ubuntu 26.04 on 2026-10-31 and `later` 1.4.5 (locked)
+    # doesn't compile there (glibc 2.43 / GCC 15). Update `later` in renv.lock (1.4.7+
+    # fixes it) and test on 26.04 before changing this.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     steps:

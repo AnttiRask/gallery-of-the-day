@@ -12,6 +12,7 @@ Gallery of the Day is a web app that shows every day a new AI-created image insp
 - 📜 Uses GPT-5.6 Luna to choose and describe a significant event from Wikipedia's "On this day" list (focusing on positive achievements), so dates and years are real
 - 🎨 Creates images with GPT Image 2.5 Sunburst in high quality based on those descriptions
 - 📦 Data updated daily via GitHub Actions and stored in Turso (libSQL) and Cloudflare R2
+- 🛟 Friendly messages instead of error pages, and a `/health` endpoint that an uptime check watches
 
 ## 📸 Screenshot
 
@@ -49,8 +50,13 @@ gallery-of-the-day/
 │   └── run.R                       # App entry point
 ├── docs/                           # GitHub Pages site
 │   └── index.html                  # Landing page
+├── tests/testthat/                 # Test suite (run by tests.yml)
+├── monitoring/                     # Alert policy for the /health uptime check
 ├── .github/workflows/
-│   └── r_scripts_daily.yml         # Daily automation workflow
+│   ├── r_scripts_daily.yml         # Daily automation workflow
+│   ├── tests.yml                   # Tests on every push and pull request
+│   ├── deploy_shiny_app.yml        # Manual keyless deploy to Cloud Run
+│   └── backfill.yml                # Manual: create missing days
 ├── Dockerfile                      # Container image definition
 ├── docker-compose.yml              # Local development setup
 ├── deploy.sh                       # Google Cloud Run deployment
@@ -88,18 +94,20 @@ Sends the historical description to GPT Image 2.5 Sunburst to generate a unique 
 
 ### 3. Automation
 
-GitHub Actions runs daily at 4 AM UTC:
+GitHub Actions runs daily (scheduled for 4 AM UTC; GitHub often starts it a few hours later, so today's image can appear around 9-10 AM UTC):
 
-1. Generate prompt for today
-2. Create and fetch image
-3. Commit new files to repository
+1. Generate the prompt for today and save it in Turso
+2. Create the image and upload it to R2
+3. Re-enable the workflow through the API, so GitHub's 60-day inactivity rule can't switch the schedule off (the job never commits files)
+
+The R workflows run on `ubuntu-26.04`, pinned on purpose (see the comment in each workflow file); the app image is Ubuntu 24.04 with R 4.5.
 
 ## Local Development
 
 ### Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/)
-- R (>= 4.0) for running automation scripts outside Docker
+- R 4.5 (the version in `renv.lock`) for running automation scripts outside Docker
 
 ### Setup
 
@@ -149,6 +157,8 @@ Add these secrets to your repository:
 
 - ✅ UX improvements: lightbox mode, keyboard navigation, page title, diverse events (Feb 2026)
 - ✅ GPT Image 1.5 upgrade with HD quality (Feb 2026)
+- ✅ Hardening and operations: security headers, non-root image, runtime account without broad rights, keyless deploys, a test workflow, an Artifact Registry cleanup policy and a budget alert (Oct 2026)
+- ✅ Error states, an in-memory prompts cache, a stale-data note and a `/health` endpoint with an uptime alert (Oct 2026)
 - ✅ GPT-5.6 Luna and GPT Image 2.5 Sunburst, structured JSON output, safety fallbacks and tests (Oct 2026)
 - ✅ Google Cloud Run deployment with custom domain (Jan 2026)
 - ✅ Shiny app UI makeover with bslib and dark theme (Jan 2026)

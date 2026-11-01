@@ -17,3 +17,12 @@ updates:
     open-pull-requests-limit: 3
     commit-message:
       prefix: "docker"
+    # Stay on the R minor version in renv.lock (4.5). A new R minor needs the lockfile
+    # rebuilt in a container of that version (R 4.6 needs rlang >= 1.3.0; the locked 1.1.7
+    # doesn't compile on it, PR #3 failed the image build) and r-version changed in the
+    # workflows. Patch updates still come.
+    ignore:
+      - dependency-name: "rocker/r-ver"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"

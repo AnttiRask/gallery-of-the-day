@@ -36,13 +36,16 @@ gallery-of-the-day/
 │   ├── turso.R                     # Turso client (scripts and app)
 │   └── backfill_date.R             # Create (or regenerate) one missing day
 ├── app/                            # Shiny application
-│   ├── www/
+│   ├── lib/                        # The app's R code (not served to browsers)
 │   │   ├── functions.R             # Helper functions
 │   │   ├── variables.R             # Settings: colours, footer apps, R2 URL
 │   │   ├── strings.R               # All user-facing text
 │   │   ├── data.R                  # Loads the prompts (never throws; error states)
 │   │   ├── health.R                # /health for the uptime monitor
+│   │   └── security.R              # Security headers
+│   ├── www/                        # The only folder served publicly
 │   │   ├── lightbox.js             # Lightbox and arrow-key navigation
+│   │   ├── mode-toggle.js          # Light/dark switch
 │   │   └── styles.css              # Custom styling
 │   ├── global.R                    # Libraries and sourced files
 │   ├── ui.R                        # User interface (bslib + Bootstrap 5)
@@ -52,10 +55,11 @@ gallery-of-the-day/
 │   └── index.html                  # Landing page
 ├── tests/testthat/                 # Test suite (run by tests.yml)
 ├── monitoring/                     # Alert policy for the /health uptime check
+├── infra/                          # Registry cleanup policy (as set in GCP)
 ├── .github/workflows/
 │   ├── r_scripts_daily.yml         # Daily automation workflow
 │   ├── tests.yml                   # Tests on every push and pull request
-│   ├── deploy_shiny_app.yml        # Manual keyless deploy to Cloud Run
+│   ├── deploy_shiny_app.yml        # Keyless deploy to Cloud Run: on push to main after the tests, or on demand
 │   └── backfill.yml                # Manual: create missing days
 ├── Dockerfile                      # Container image definition
 ├── docker-compose.yml              # Local development setup

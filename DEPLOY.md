@@ -26,7 +26,11 @@ The image is the production image: Ubuntu 24.04 with R 4.5.2, running as a non-r
 
 ## Deploy to Google Cloud Run
 
-### Automated Deployment
+### Deploying from GitHub (the normal way)
+
+A push to `main` that changes what goes into the image (`app/**`, `R/turso.R`, `Dockerfile`, `.dockerignore`, `.Rprofile`, `renv.lock`, `renv/activate.R`, `renv/settings.json`) starts the "Deploy to Cloud Run" workflow. It first runs the whole test suite (the same `Tests` workflow, called with `needs: tests`) and deploys only if it passes. Docs, tests and the other workflows don't deploy. You can also start it by hand: Actions > "Deploy to Cloud Run" > Run workflow (the tests run first then too). It logs in keylessly as `gallery-deploy` (see below), builds the image, deploys, and smoke-tests the result: the revision's `git-sha` label must be the commit and the page must answer 200. `gcloud run deploy` moves traffic before the smoke test runs, so a bad revision that passes the tests can be live for a few minutes: roll back with `gcloud run services update-traffic gallery-of-the-day-app --to-revisions <previous revision>=100 --region europe-north1 --project gallery-of-the-day-app`.
+
+### Deploying from your machine
 
 ```bash
 ./deploy.sh

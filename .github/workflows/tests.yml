@@ -1,17 +1,20 @@
 name: Tests
 
 # Runs the testthat suite on every push to main and on pull requests, so a
-# change that breaks the daily scripts or the security headers is caught before
-# it is deployed.
+# change that breaks the daily scripts or the security headers is caught early.
+# The deploy workflow calls it too (workflow_call) and only deploys if it passes.
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
-# A newer push to the same branch makes the older run pointless
+# A newer push to the same branch makes the older run pointless. github.workflow is
+# the caller's name when this runs from the deploy workflow, so a called run and the
+# push-triggered run of the same commit have different groups and don't cancel each other.
 concurrency:
-  group: tests-${{ github.ref }}
+  group: tests-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

@@ -1,9 +1,23 @@
 name: Deploy to Cloud Run
 
-# On demand for now: Actions tab > "Deploy to Cloud Run" > Run workflow. There is
-# no tests workflow yet, so it doesn't deploy on every push. Keep the service flags
-# in sync with deploy.sh.
+# Deploys on every push to main that changes something that goes into the image
+# (the paths below; docs, tests and the other workflows don't deploy), and on demand
+# (Actions tab > "Deploy to Cloud Run" > Run workflow). Either way the test suite
+# runs first and the deploy only starts if it passes. Keep the service flags in sync
+# with deploy.sh.
 on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "R/turso.R"
+      - "Dockerfile"
+      - ".dockerignore"
+      - ".Rprofile"
+      - "renv.lock"
+      - "renv/activate.R"
+      - "renv/settings.json"
+      - ".github/workflows/deploy_shiny_app.yml"
   workflow_dispatch:
 
 # Never run two deploys at once
@@ -22,7 +36,14 @@ env:
   SERVICE: gallery-of-the-day-app
 
 jobs:
+  # The deploy waits for the tests (the same workflow that runs on every push)
+  tests:
+    uses: ./.github/workflows/tests.yml
+    permissions:
+      contents: read
+
   deploy:
+    needs: tests
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:

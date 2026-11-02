@@ -11,28 +11,55 @@ for (f in c("variables.R", "strings.R", "functions.R")) {
 
 # add_spaces_after_periods() ----
 
-test_that("a period glued to the next word gets a space", {
+test_that("a period that ends a sentence, glued to the next one, gets a space", {
     expect_equal(fn_env$add_spaces_after_periods("One.Two"), "One. Two")
     expect_equal(fn_env$add_spaces_after_periods("Done.Next one.Last"), "Done. Next one. Last")
+    expect_equal(fn_env$add_spaces_after_periods("It ended in 1927.The next year"), "It ended in 1927. The next year")
+    expect_equal(fn_env$add_spaces_after_periods("(see above).Then"), "(see above). Then")
+    expect_equal(fn_env$add_spaces_after_periods("Dr.Smith"), "Dr. Smith")
 })
 
-# (A period at the very end gets a trailing space; that is harmless, so these compare
-# the trimmed result.)
-test_that("text that is already spaced, or ends with a period, is left alone", {
-    expect_equal(trimws(fn_env$add_spaces_after_periods("A. B. C.")), "A. B. C.")
-    expect_equal(trimws(fn_env$add_spaces_after_periods("The end.")), "The end.")
+test_that("a period glued to a bold heading gets a space, whatever comes before it", {
+    expect_equal(
+        fn_env$add_spaces_after_periods("the Iberian Peninsula.**Setting and Atmosphere:** The"),
+        "the Iberian Peninsula. **Setting and Atmosphere:** The"
+    )
+    expect_equal(fn_env$add_spaces_after_periods("World War II.**Setting:** The"), "World War II. **Setting:** The")
+})
+
+test_that("text that is already spaced, or ends with a period, is left exactly as it is", {
+    expect_equal(fn_env$add_spaces_after_periods("A. B. C."), "A. B. C.")
+    expect_equal(fn_env$add_spaces_after_periods("The end."), "The end.")
     expect_equal(fn_env$add_spaces_after_periods("No periods here"), "No periods here")
+    expect_equal(fn_env$add_spaces_after_periods(""), "")
 })
 
-# Known defect, found 2026-11-03 while writing these tests: the rule adds a space after
-# EVERY period that has no space after it, so decimals and initials break ("3.5" becomes
-# "3. 5", "U.S." becomes "U. S."). 21 of the 306 stored captions are shown that way.
-# Remove the skip when the rule only touches a period between a lowercase letter and a
-# capital letter.
-test_that("decimals and initials are left alone", {
-    skip("known defect: 3.5 shows as '3. 5' and U.S. as 'U. S.' (21 of 306 captions)")
+# Found 2026-11-03: the first version added a space after EVERY period without one, so
+# decimals and initials broke ("3.5" showed as "3. 5", "U.S." as "U. S."): 21 of the 306
+# stored captions.
+test_that("decimals are left alone", {
     expect_equal(fn_env$add_spaces_after_periods("It grew 3.5 million."), "It grew 3.5 million.")
+    expect_equal(fn_env$add_spaces_after_periods("A 12.75% rise, version 2.0"), "A 12.75% rise, version 2.0")
+})
+
+test_that("initials and abbreviations in capitals are left alone", {
     expect_equal(fn_env$add_spaces_after_periods("The U.S. team won."), "The U.S. team won.")
+    expect_equal(fn_env$add_spaces_after_periods("In Washington, D.C., it rained."), "In Washington, D.C., it rained.")
+    expect_equal(fn_env$add_spaces_after_periods("The U.S.A. flag"), "The U.S.A. flag")
+})
+
+test_that("domain names are left alone", {
+    expect_equal(fn_env$add_spaces_after_periods("see example.com for more"), "see example.com for more")
+})
+
+test_that("a period before a closing quote or a comma gets no stray space", {
+    expect_equal(fn_env$add_spaces_after_periods('He said "stop." Then left.'), 'He said "stop." Then left.')
+    expect_equal(fn_env$add_spaces_after_periods("the \u201cfirst.\u201d Then"), "the \u201cfirst.\u201d Then")
+    expect_equal(fn_env$add_spaces_after_periods("approx., about"), "approx., about")
+})
+
+test_that("it works on a vector of captions", {
+    expect_equal(fn_env$add_spaces_after_periods(c("a.B", "3.5", NA)), c("a. B", "3.5", NA))
 })
 
 # insert_row_breaks() ----
@@ -78,7 +105,8 @@ test_that("an empty caption stays empty", {
 })
 
 test_that("clean_and_break_text spaces the periods, then breaks the paragraphs", {
-    expect_equal(trimws(fn_env$clean_and_break_text("Hello.World is fine.")), "Hello. World is fine.")
+    expect_equal(fn_env$clean_and_break_text("Hello.World is fine."), "Hello. World is fine.")
+    expect_equal(fn_env$clean_and_break_text("The U.S. grew 3.5 percent."), "The U.S. grew 3.5 percent.")
     glued <- paste(rep("This is a sentence of moderate length that goes on a bit.", 12), collapse = "")
     out <- fn_env$clean_and_break_text(glued)
     expect_gt(length(strsplit(out, "\n\n", fixed = TRUE)[[1]]), 1)

@@ -1,5 +1,12 @@
+# Adds the space the model sometimes leaves between sentences ("end.Next sentence",
+# "end.**Heading:**"). Only a period that really ends a sentence counts: one between a
+# lowercase letter, digit or closing quote/bracket and a capital letter, or one in front
+# of a bold heading. Decimals (3.5), initials (U.S., D.C.), domain names (example.com) and
+# a period before a closing quote are left alone. (The first version spaced every period
+# that had no space after it, so 3.5 showed as "3. 5" and U.S. as "U. S." in 21 of the
+# 306 captions; fixed 2026-11-03 after checking all of them.)
 add_spaces_after_periods <- function(text) {
-    str_replace_all(text, "\\.(?! )", ". ")
+    str_replace_all(text, "(?<=[a-z0-9\\)\"\u201d\u2019'])\\.(?=[A-Z])|\\.(?=\\*\\*[A-Z])", ". ")
 }
 
 insert_row_breaks <- function(text, max_length = 400) {

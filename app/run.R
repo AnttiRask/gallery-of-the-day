@@ -1,9 +1,10 @@
 library(shiny)
 
+# The R files live in lib/, which Shiny doesn't serve (only www/ is public)
+source("app/lib/variables.R")
+source("app/lib/security.R")
+source("app/lib/health.R")
 # Run from the app directory so ui.R / server.R find their www/ files
-source("app/www/variables.R")
-source("app/www/security.R")
-source("app/www/health.R")
 setwd("app")
 
 port <- as.integer(Sys.getenv("PORT", "8080"))

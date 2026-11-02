@@ -1,8 +1,8 @@
 library(testthat)
 
-source(test_path("../../app/www/variables.R"), local = TRUE)
-source(test_path("../../app/www/security.R"), local = TRUE)
-source(test_path("../../app/www/health.R"), local = TRUE)
+source(test_path("../../app/lib/variables.R"), local = TRUE)
+source(test_path("../../app/lib/security.R"), local = TRUE)
+source(test_path("../../app/lib/health.R"), local = TRUE)
 
 TODAY <- as.Date("2026-10-21")
 

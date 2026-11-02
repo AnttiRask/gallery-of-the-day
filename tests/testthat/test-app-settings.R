@@ -1,7 +1,7 @@
 library(testthat)
 
-source(test_path("../../app/www/variables.R"))
-source(test_path("../../app/www/strings.R"))
+source(test_path("../../app/lib/variables.R"))
+source(test_path("../../app/lib/strings.R"))
 
 test_that("the footer lists each app once, over https, and includes this one", {
     ids <- vapply(footer_apps, \(app) app$id, character(1))

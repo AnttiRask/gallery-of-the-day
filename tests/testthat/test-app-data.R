@@ -4,9 +4,9 @@ library(testthat)
 TURSO_DATABASE_URL <- "libsql://test-db.turso.io"
 TURSO_AUTH_TOKEN   <- "not-a-real-token"
 
-source(test_path("../../app/www/variables.R"), local = TRUE)
+source(test_path("../../app/lib/variables.R"), local = TRUE)
 source(test_path("../../R/turso.R"), local = TRUE)
-source(test_path("../../app/www/data.R"), local = TRUE)
+source(test_path("../../app/lib/data.R"), local = TRUE)
 
 # Helpers ----
 

@@ -1,5 +1,5 @@
 ## All user-facing text of the app, in one place.
-## Everything in www/ is served publicly: never put a secret in this file.
+## Not served to browsers (only app/www/ is); still, keep secrets out of the repo.
 
 strings <- list(
     app_title = "Gallery of the Day",

@@ -1,7 +1,7 @@
 library(testthat)
 
-source(test_path("../../app/www/variables.R"))
-source(test_path("../../app/www/security.R"))
+source(test_path("../../app/lib/variables.R"))
+source(test_path("../../app/lib/security.R"))
 
 test_that("the header set covers framing, referrers, permissions, transport and CSP", {
     h <- security_headers()

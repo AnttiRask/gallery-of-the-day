@@ -10,12 +10,12 @@ library(stringr)
 options(shiny.sanitize.errors = TRUE)
 
 # Settings and text first, then the helpers, then the Turso and R2 configuration
-source("www/variables.R")
-source("www/strings.R")
-source("www/functions.R")
+source("lib/variables.R")
+source("lib/strings.R")
+source("lib/functions.R")
 # The Turso helpers are shared with the daily scripts (the Dockerfile copies the file)
 source("../R/turso.R")
-source("www/data.R")
+source("lib/data.R")
 source("config.R")
 
 # Fill the prompts cache once the app is up, so the first visitor doesn't wait for

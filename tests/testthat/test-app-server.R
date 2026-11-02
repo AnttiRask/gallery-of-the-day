@@ -6,7 +6,7 @@ library(stringr)
 # load_prompts() for a fake and check what the page shows in each state.
 app_env <- new.env(parent = globalenv())
 for (f in c("variables.R", "strings.R", "functions.R")) {
-    source(test_path("../../app/www", f), local = app_env)
+    source(test_path("../../app/lib", f), local = app_env)
 }
 assign("R2_PUBLIC_URL", "https://images.example.com", envir = app_env)
 source(test_path("../../app/server.R"), local = app_env)

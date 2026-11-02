@@ -4,7 +4,7 @@
 ## option does nothing), so run.R wraps the app's page handler instead. Static
 ## assets are served by other handlers and don't need these headers.
 ##
-## Needs www/variables.R (sourced by run.R first).
+## Needs lib/variables.R (sourced by run.R first).
 
 # The images come from the R2 bucket, from the same setting the app builds its
 # image URLs from (config.R), so the two can't drift apart. Only the origin

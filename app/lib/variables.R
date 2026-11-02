@@ -1,5 +1,5 @@
-## Settings shared by run.R (security headers), config.R and ui.R. Everything in www/ is
-## served publicly: never put a secret in this file.
+## Settings shared by run.R (security headers), config.R and ui.R. This folder (lib/) is not
+## served to browsers (only app/www/ is); still, keep secrets out of the repo.
 
 # Public URL of the Cloudflare R2 bucket the images come from. The R2_PUBLIC_URL
 # environment variable overrides it; local development uses this default.

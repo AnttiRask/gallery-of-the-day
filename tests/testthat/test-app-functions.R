@@ -91,13 +91,13 @@ test_that("one sentence longer than the limit stays whole", {
     expect_equal(trimws(fn_env$insert_row_breaks(one, max_length = 50)), one)
 })
 
-# Known quirk: when the FIRST sentence is longer than the limit, the result starts with a
-# paragraph break (a blank line above the caption). Captions start with a short sentence
-# ("On January 7, 1927, ..."), so it hasn't shown up; remove the skip when it is fixed.
+# A first sentence longer than the limit used to leave a blank paragraph above the caption
 test_that("a very long first sentence doesn't start with a blank paragraph", {
-    skip("known quirk: a first sentence over the limit gets a leading paragraph break")
     one <- paste0(paste(rep("word", 200), collapse = " "), ".")
     expect_false(startsWith(fn_env$insert_row_breaks(one, max_length = 50), "\n"))
+    expect_equal(fn_env$insert_row_breaks(one, max_length = 50), one)
+    out <- fn_env$insert_row_breaks(paste(one, "Short next one."), max_length = 50)
+    expect_equal(out, paste0(one, "\n\nShort next one."))
 })
 
 test_that("an empty caption stays empty", {

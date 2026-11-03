@@ -20,7 +20,9 @@ insert_row_breaks <- function(text, max_length = 400) {
     for (sentence in sentences) {
         # Trim sentence to remove leading and trailing whitespaces
         sentence <- str_trim(sentence)
-        if (nchar(sentence) + current_length > max_length) {
+        # (never as the very first thing: a long first sentence would leave a blank
+        # paragraph above the caption)
+        if (nchar(new_text) > 0 && nchar(sentence) + current_length > max_length) {
             new_text <- str_c(new_text, "\n\n", sentence)
             current_length <- nchar(sentence)
         } else {

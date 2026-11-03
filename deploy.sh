@@ -56,6 +56,10 @@ gcloud builds submit \
 # --service-account: the app runs as gallery-runtime, which can read only the three
 # secrets (not as the default compute account, which holds roles/editor).
 # --max-instances 3 caps the cost if the page is flooded.
+# --update-labels git-sha: the commit this revision was built from, like the GitHub
+# workflow sets it ("-dirty" when the working tree has uncommitted changes)
+GIT_SHA="$(git rev-parse --short=12 HEAD)"
+if [ -n "$(git status --porcelain)" ]; then GIT_SHA="${GIT_SHA}-dirty"; fi
 echo -e "${GREEN}Deploying to Cloud Run...${NC}"
 gcloud run deploy "$SERVICE_NAME" \
     --image "$IMAGE" \
@@ -67,7 +71,8 @@ gcloud run deploy "$SERVICE_NAME" \
     --memory 1Gi \
     --timeout 3600 \
     --session-affinity \
-    --max-instances 3
+    --max-instances 3 \
+    --update-labels "git-sha=${GIT_SHA}"
 
 # Get the service URL
 SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" --region "$REGION" --format="value(status.url)")

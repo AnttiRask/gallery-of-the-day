@@ -124,6 +124,12 @@ $(document).ready(function() {
             return;
         }
 
+        // While the connection is down (Shiny shows its reconnect notice) a key
+        // press would only change the date box and leave the image on the old day
+        if (!Shiny.shinyapp || !Shiny.shinyapp.isConnected()) {
+            return;
+        }
+
         // Check if we have dates and a valid current index
         if (availableDates.length === 0 || currentDateIndex === -1) {
             return;

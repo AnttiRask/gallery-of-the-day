@@ -53,6 +53,11 @@ test_that("the image fallback and the retry button are wired in lightbox.js", {
     expect_match(js, "location.reload", fixed = TRUE)
 })
 
+test_that("arrow-key navigation is ignored while the websocket is down", {
+    js <- paste(readLines(file.path(www, "lightbox.js"), warn = FALSE), collapse = "\n")
+    expect_match(js, "Shiny.shinyapp.isConnected()", fixed = TRUE)
+})
+
 # config.R ----
 
 config_env <- function() {

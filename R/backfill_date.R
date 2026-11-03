@@ -35,6 +35,7 @@ source("R/config.R")
 source("R/wikipedia.R")
 source("R/openai.R")
 source("R/r2.R")
+source("R/daily.R")
 
 library(conflicted)
     conflicts_prefer(dplyr::filter)
@@ -47,107 +48,7 @@ library(lubridate)
 library(purrr)
 library(stringr)
 
-object_key <- str_glue("gallery-of-the-day-{target_date_str}.png")
-r2_endpoint <- str_glue("{R2_ACCOUNT_ID}.r2.cloudflarestorage.com")
+r2 <- r2_client(R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME)
 
-# Upload raw PNG bytes to R2 (replaces an existing object with the same key)
-upload_image <- function(image) {
-    temp_file <- tempfile(fileext = ".png")
-    on.exit(unlink(temp_file))
-    writeBin(image, temp_file)
-    cat("Image saved, uploading to R2 as", object_key, "\n")
-
-    r2_put_with_retry(function() {
-        put_object(
-            file     = temp_file,
-            object   = object_key,
-            bucket   = R2_BUCKET_NAME,
-            key      = R2_ACCESS_KEY_ID,
-            secret   = R2_SECRET_ACCESS_KEY,
-            base_url = r2_endpoint,
-            region   = ""
-        )
-    })
-}
-
-save_caption <- function(caption) {
-    existing <- turso_query("SELECT COUNT(*) as count FROM prompts WHERE date = ?", list(target_date_str))
-    if (as.integer(existing$count[1]) > 0) {
-        turso_execute("UPDATE prompts SET text = ? WHERE date = ?", list(caption, target_date_str))
-    } else {
-        turso_execute("INSERT INTO prompts (text, date) VALUES (?, ?)", list(caption, target_date_str))
-    }
-    cat("Prompt saved for", target_date_str, "\n")
-}
-
-if (regenerate) {
-
-    # ---- Regenerate: a new event and image; Turso is updated last ----
-
-    cat("Regenerating", target_date_str, "with", openai_text_model, "and", openai_image_model, "...\n")
-
-    event <- generate_event(target_date)
-    cat("Event:", year_label(event$year), "-", event$event, "\n")
-
-    result <- generate_image_with_fallbacks(event$caption, target_date)
-
-    upload_image(result$image)
-    save_caption(result$caption)
-
-    cat("Done regenerating", target_date_str, "\n")
-    quit(save = "no", status = 0)
-}
-
-# ---- Step 1: ensure a prompt exists in Turso for target_date ----
-
-existing <- turso_query(
-    "SELECT text FROM prompts WHERE date = ?",
-    list(target_date_str)
-)
-
-if (nrow(existing) > 0 && !is.na(existing$text[1]) && nchar(existing$text[1]) > 0) {
-    cat("Prompt for", target_date_str, "already exists in Turso. Reusing it.\n")
-    prompt_text <- existing$text[1]
-} else {
-    cat("Asking", openai_text_model, "for an event on", date_label(target_date), "...\n")
-
-    event <- generate_event(target_date)
-    prompt_text <- event$caption
-
-    cat("Event:", year_label(event$year), "-", event$event, "\n")
-    cat("Generated prompt length:", nchar(prompt_text), "characters\n")
-
-    save_caption(prompt_text)
-}
-
-# ---- Step 2: ensure an image exists in R2 for target_date ----
-
-image_exists <- tryCatch({
-    head_object(
-        object   = object_key,
-        bucket   = R2_BUCKET_NAME,
-        key      = R2_ACCESS_KEY_ID,
-        secret   = R2_SECRET_ACCESS_KEY,
-        base_url = r2_endpoint,
-        region   = ""
-    )
-}, error = function(e) FALSE)
-
-if (isTRUE(image_exists)) {
-    cat("Image for", target_date_str, "already in R2. Done.\n")
-    quit(save = "no", status = 0)
-}
-
-# The model and its settings live in R/config.R. If the safety system blocks the
-# prompt, a rewritten and then a different event is tried.
-cat("Making", openai_image_model, "request for", target_date_str, "...\n")
-
-result <- generate_image_with_fallbacks(prompt_text, target_date)
-
-if (result$changed) {
-    cat("Updating Turso prompt to the version that succeeded.\n")
-    save_caption(result$caption)
-}
-
-upload_image(result$image)
-cat("Done backfilling", target_date_str, "\n")
+# The flow is in R/daily.R
+backfill_day(target_date, r2, regenerate = regenerate)

@@ -16,6 +16,7 @@ source("R/config.R")
 source("R/wikipedia.R")
 source("R/openai.R")
 source("R/r2.R")
+source("R/daily.R")
 
 # Load packages ----
 library(conflicted)
@@ -29,85 +30,7 @@ library(lubridate)
 library(purrr)
 library(stringr)
 
-# Check if today's image already exists in R2 ----
-image_date <- today()
-object_key <- str_glue("gallery-of-the-day-{image_date}.png")
-r2_endpoint <- str_glue("{R2_ACCOUNT_ID}.r2.cloudflarestorage.com")
+# Today's image, unless it already exists in R2 (the flow is in R/daily.R) ----
+r2 <- r2_client(R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME)
 
-# Check if image exists in R2
-# head_object returns TRUE if exists, FALSE if 404
-image_exists <- tryCatch({
-    head_object(
-        object   = object_key,
-        bucket   = R2_BUCKET_NAME,
-        key      = R2_ACCESS_KEY_ID,
-        secret   = R2_SECRET_ACCESS_KEY,
-        base_url = r2_endpoint,
-        region   = ""
-    )
-}, error = function(e) {
-    FALSE
-})
-
-if (image_exists) {
-    cat("Image for", as.character(image_date), "already exists in R2. Skipping.\n")
-    quit(save = "no", status = 0)
-}
-
-# The text prompt for this date (from Turso database) ----
-prompt_result <- turso_query(
-    "SELECT text FROM prompts WHERE date = ?",
-    list(as.character(image_date))
-)
-
-if (nrow(prompt_result) == 0 || is.na(prompt_result$text[1]) || prompt_result$text[1] == "") {
-    stop("There is no prompt for ", image_date, " in Turso. Run R/create_prompt.R first.")
-}
-
-prompt <- prompt_result$text[1]
-
-cat("Prompt length:", nchar(prompt), "characters\n")
-
-# Create the image (the model and its settings live in R/config.R). If the
-# safety system blocks the prompt, a rewritten and then a different event is tried.
-cat("Making", openai_image_model, "request...\n")
-
-result <- generate_image_with_fallbacks(prompt, image_date)
-
-# Update the prompt in Turso if we had to use a different one
-if (result$changed) {
-    cat("Updating prompt in Turso with the successful version...\n")
-    turso_execute(
-        "UPDATE prompts SET text = ? WHERE date = ?",
-        list(result$caption, as.character(image_date))
-    )
-}
-
-# Save the image to a temp file
-temp_file <- tempfile(fileext = ".png")
-writeBin(result$image, temp_file)
-cat("Image saved to temp file\n")
-
-# Upload to Cloudflare R2
-cat("Uploading to R2...\n")
-cat("Bucket:", R2_BUCKET_NAME, "\n")
-cat("Object key:", object_key, "\n")
-cat("Endpoint:", r2_endpoint, "\n")
-
-r2_put_with_retry(function() {
-    put_object(
-        file     = temp_file,
-        object   = object_key,
-        bucket   = R2_BUCKET_NAME,
-        key      = R2_ACCESS_KEY_ID,
-        secret   = R2_SECRET_ACCESS_KEY,
-        base_url = r2_endpoint,
-        region   = ""
-    )
-})
-cat("Image uploaded to R2:", object_key, "\n")
-
-# Clean up temp file
-unlink(temp_file)
-
-cat("Done!\n")
+fetch_daily_image(today(), r2)

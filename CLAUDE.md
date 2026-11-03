@@ -29,7 +29,7 @@ R -e "renv::restore()"
 ### Data Flow
 1. **Prompt Generation** (`R/create_prompt.R`): `R/wikipedia.R` fetches the real events for the date from Wikipedia's "On this day" feed; GPT-5.6 Luna chooses one by number and describes it (JSON output; the year and event come from the list, not from the model; stored as plain text in Turso, a libSQL database)
 2. **Image Generation** (`R/fetch_image.R`): GPT Image 2.5 Sunburst creates images (a "no text in the image" line is added to the prompt, not to the stored caption), uploaded to Cloudflare R2
-3. **Shared code**: `R/config.R` (models, prompts) and `R/openai.R` (API calls, retries, fallbacks) are used by `create_prompt.R`, `fetch_image.R` and `backfill_date.R`; tests are in `tests/testthat/`
+3. **Shared code**: `R/config.R` (models, prompts) and `R/openai.R` (API calls, retries, fallbacks) are used by `create_prompt.R`, `fetch_image.R` and `backfill_date.R`. The three scripts only read the environment, load packages and call the flows in `R/daily.R` (`create_daily_prompt()`, `fetch_daily_image()`, `backfill_day()`), which take Turso, R2 (`r2_client()` in `R/r2.R`) and OpenAI as arguments, so `tests/testthat/test-daily.R` runs every path (skip, create, safety-block rewrite, regenerate, failures) with fakes and the order of writes is checked (Turso update before the upload; `--regenerate` updates Turso last). Tests are in `tests/testthat/`. To try a script locally without touching production, use `Rscript --no-environ` with fake variables: R reads the project's `.Renviron` otherwise and the real credentials override yours
 3. **Display** (`app/`): Shiny app fetches prompts from Turso and images from R2
 
 ### Key Components

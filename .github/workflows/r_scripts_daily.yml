@@ -67,3 +67,47 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: gh workflow enable r_scripts_daily.yml --repo "${{ github.repository }}"
+
+  # Tells the owner when the daily run fails, and when it recovers. A failed run
+  # opens an issue assigned to the owner (GitHub emails the assignee at once); more
+  # failures while it is open only add a comment, and the next successful run closes
+  # it. Without this, a failure would only show up through /health about a day later.
+  report:
+    needs: run-scripts
+    if: always() && (needs.run-scripts.result == 'failure' || needs.run-scripts.result == 'success')
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RESULT: ${{ needs.run-scripts.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      OWNER: ${{ github.repository_owner }}
+    steps:
+    - name: Report the result
+      run: |
+        set -euo pipefail
+        label="daily-run-failed"
+        gh label create "$label" --repo "$GITHUB_REPOSITORY" --color d73a4a \
+          --description "The daily image run failed" --force
+        open=$(gh issue list --repo "$GITHUB_REPOSITORY" --label "$label" --state open \
+          --json number --jq '.[0].number // empty')
+
+        if [ "$RESULT" = "failure" ]; then
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --repo "$GITHUB_REPOSITORY" --body "Failed again: $RUN_URL"
+            echo "Commented on issue #$open"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --label "$label" --assignee "$OWNER" \
+              --title "Daily run failed on $(date -u +%F)" \
+              --body "The daily run failed: $RUN_URL
+
+        Check the failed step's log. Today's image may be missing until a later run or a backfill fills it in (the Backfill Missing Days workflow, with the date in \`dates\`; \`https://galleryoftheday.youcanbeapirate.com/health\` answers 503 \`stale\` once a whole day is missing). This issue closes itself when a run succeeds."
+          fi
+        elif [ -n "$open" ]; then
+          gh issue comment "$open" --repo "$GITHUB_REPOSITORY" --body "A later run succeeded: $RUN_URL"
+          gh issue close "$open" --repo "$GITHUB_REPOSITORY"
+          echo "Closed issue #$open"
+        else
+          echo "Run succeeded and no failure issue is open"
+        fi

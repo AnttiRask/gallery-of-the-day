@@ -6,7 +6,7 @@ invisible(Sys.setlocale("LC_TIME", "C"))
 # Models ----
 
 # Writes the event text (chosen after a comparison on 2026-10-19, see
-# gallery-of-the-day-refactor-plan.md; gpt-4o-mini is retired on 2027-01-14)
+# gallery-of-the-day-refactor-plan.md; it replaced gpt-4o-mini, which OpenAI retires on 2027-01-14)
 openai_text_model  <- "gpt-5.6-luna"
 
 # Creates the image

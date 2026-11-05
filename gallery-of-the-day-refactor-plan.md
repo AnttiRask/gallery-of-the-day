@@ -194,7 +194,7 @@ Mirrors TuneTeller section 5. All in the existing project `gallery-of-the-day-ap
 5. **Deploy settings:** `--timeout 3600 --session-affinity`, `--max-instances 3`, concurrency above the parallel asset count (do not lower it), no `--allow-unauthenticated` in the workflow (already public).
 6. **Workflows:** `tests.yml` (tests on the locked packages) and `deploy_shiny_app.yml` (build, deploy, smoke test that checks the `git-sha` label), triggered on `app/**` and build files only; keep `r_scripts_daily.yml` separate, with the Phase 0 changes. Pin actions to SHAs, minimum `permissions`, Dependabot for Actions and Docker.
 7. **Repo hygiene:** secret scanning, push protection, Dependabot alerts and security updates, `main` protected (no force-push or deletion), read back to verify.
-8. **Cleanup:** Artifact Registry keeps the newest 5 versions; lifecycle on the build buckets.
+8. **Cleanup:** Artifact Registry keeps the newest 5 versions; lifecycle on the build buckets. **Done 2026-11-05 for the one bucket there is:** `gallery-of-the-day-app_cloudbuild` (697 MB, 38 objects, 12 older than 30 days) now deletes objects older than 30 days (the user applied it; read back; soft delete 7 days). There is no `run-sources-...` bucket in this project.
 9. **Websocket:** with the 3600 s timeout, `allowReconnect(TRUE)` does nothing on Cloud Run; use `"force"` only after checking the server logic is idempotent. Here it is read-only (a date pick), so `"force"` is safe to consider.
 
 Phase 2 changes cloud resources; each numbered step is shown to the user first, and the live service is never touched until the new workflow is proven.

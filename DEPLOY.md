@@ -88,6 +88,8 @@ gcloud artifacts repositories set-cleanup-policies cloud-run-source-deploy \
   --policy infra/registry-cleanup-policy.json --dry-run   # test first; drop --dry-run to enforce
 ```
 
+The build bucket `gallery-of-the-day-app_cloudbuild` (Cloud Build's uploaded sources, 697 MB in 38 objects on 2026-11-05) deletes objects older than 30 days (lifecycle rule applied 2026-11-05, read back; the 7-day soft delete stays on). This project has no `run-sources-...` bucket. To set it again: `gcloud storage buckets update gs://gallery-of-the-day-app_cloudbuild --project gallery-of-the-day-app --lifecycle-file=<file with {"rule":[{"action":{"type":"Delete"},"condition":{"age":30}}]}>`.
+
 The dry-run result only shows in the audit log after the next daily run. A GCP-side change that isn't in the file will be overwritten the next time someone applies it, so edit the file first.
 
 ### Custom Domain
